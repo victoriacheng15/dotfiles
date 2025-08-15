@@ -55,4 +55,44 @@ install_jq "$INSTALL_CMD"
 # --- Install Docker ---
 install_docker "$PKG_MANAGER"
 
+# --- Setup Git config ---
+read -p "Do you want to configure git (name, email, etc)? [y/N]: " SETUP_GIT
+if [[ "$SETUP_GIT" =~ ^[Yy]$ ]]; then
+    read -p "Enter your git user.name: " GIT_NAME
+    read -p "Enter your git user.email: " GIT_EMAIL
+    git config --global user.name "$GIT_NAME"
+    git config --global user.email "$GIT_EMAIL"
+    echo -e "${GREEN}✔️ Git config set${NC}"
+else
+    echo -e "${YELLOW}⚠️ Skipping git config${NC}"
+fi
+
+# --- Setup SSH key ---
+read -p "Do you want to generate a new SSH key for Git/GitHub? [y/N]: " SETUP_SSH
+if [[ "$SETUP_SSH" =~ ^[Yy]$ ]]; then
+    if [ -f "$HOME/.ssh/id_ed25519" ] || [ -f "$HOME/.ssh/id_rsa" ]; then
+        echo -e "${YELLOW}⚠️ SSH key already exists in ~/.ssh${NC}"
+    else
+        read -p "Enter your email for SSH key: " SSH_EMAIL
+        ssh-keygen -t ed25519 -C "$SSH_EMAIL" -f "$HOME/.ssh/id_ed25519" -N ""
+        echo -e "${GREEN}✔️ SSH key generated at ~/.ssh/id_ed25519${NC}"
+        echo -e "${BLUE}Your public key:${NC}"
+        cat "$HOME/.ssh/id_ed25519.pub"
+    fi
+else
+    echo -e "${YELLOW}⚠️ Skipping SSH key setup${NC}"
+fi
+
+# --- Symlink dotfiles ---
+read -p "Do you want to symlink your dotfiles to your home directory? [y/N]: " LINK_DOTFILES
+if [[ "$LINK_DOTFILES" =~ ^[Yy]$ ]]; then
+    echo -e "${GREEN}📦 Symlinking dotfiles...${NC}"
+    ln -sf "$PWD/.zshrc" "$HOME/.zshrc"
+    ln -sf "$PWD/.zsh" "$HOME/.zsh"
+    # Add more dotfiles or folders here as needed
+    echo -e "${GREEN}✔️ Dotfiles symlinked${NC}"
+else
+    echo -e "${YELLOW}⚠️ Skipping dotfile symlinking${NC}"
+fi
+
 echo "🎉 Setup complete! Restart your terminal or run: exec zsh"
