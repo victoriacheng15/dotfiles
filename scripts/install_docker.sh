@@ -2,7 +2,7 @@ install_docker() {
   local PKG_MANAGER="$1"
 
   if ! command -v docker >/dev/null 2>&1; then
-      echo "🐳 Installing Docker..."
+      echo -e "${GREEN}📦 Installing Docker...${NC}"
       if [ "$PKG_MANAGER" = "apt" ]; then
           sudo apt remove -y docker docker-engine docker.io containerd runc || true
           sudo apt install -y ca-certificates curl gnupg lsb-release
@@ -21,9 +21,9 @@ install_docker() {
           sudo dnf install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
           sudo systemctl enable --now docker
       else
-          echo "⚠️ Docker installation not supported for this package manager."
+          echo -e "${YELLOW}⚠️ Docker installation not supported for this package manager.${NC}"
       fi
   else
-      echo "✔️ Docker already installed"
+      echo -e "${GREEN}✔️ Docker already installed${NC}"
   fi
 }

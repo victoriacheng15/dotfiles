@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
 set -e  # exit if anything fails
 
+# Color variables
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
 echo "🚀 Setting up dev environment..."
 
 # --- Detect Package Manager ---
@@ -22,7 +28,7 @@ eval "$UPDATE_CMD"
 
 # --- Install Dev Tools group (Fedora only) ---
 if [ "$PKG_MANAGER" = "dnf" ]; then
-    echo "🛠 Installing Fedora Development Tools..."
+    echo -e "${GREEN}📦 Installing Fedora Development Tools...${NC}"
     sudo dnf group install -y "Development Tools"
 fi
 
