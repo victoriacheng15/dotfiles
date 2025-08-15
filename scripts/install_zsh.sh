@@ -13,6 +13,6 @@ install_zsh() {
       RUNZSH=no CHSH=no sh -c \
           "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
   else
-    echo -e "${GREEN}✔️ - Oh My Zsh already installed${NC}"
+    echo -e "${GREEN}✔️ Oh My Zsh already installed${NC}"
   fi
 }

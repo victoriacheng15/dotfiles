@@ -32,6 +32,14 @@ if [ "$PKG_MANAGER" = "dnf" ]; then
     sudo dnf group install -y "Development Tools"
 fi
 
+source scripts/install_zsh.sh
+source scripts/install_nvm.sh
+source scripts/install_go.sh
+source scripts/install_gh_cli.sh
+source scripts/install_python_and_pip.sh
+source scripts/install_jq.sh
+source scripts/install_docker.sh
+
 # --- Zsh and oh my zsh Installation ---
 install_zsh "$INSTALL_CMD"
 # --- Install NVM ---
