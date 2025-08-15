@@ -45,4 +45,4 @@ alias dlog='docker logs -f'
 # python env
 alias pyenv='source env/bin/activate'
 # misc
-alias dls='cp image_outputs/* /mnt/c/Users/hsiuc/Downloads/'
+alias dls='cp image_outputs/* /mnt/c/Users/$USER/Downloads/'

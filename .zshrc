@@ -105,17 +105,17 @@ source $ZSH/oh-my-zsh.sh
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 
 for file in $HOME/.zsh/*.zsh; do
-    [-r "$file"] && source "$file"
+    [[ -r "$file" ]] && source "$file"
 done
 
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+# comment out for now
+# export NVM_DIR="$HOME/.nvm"
+# [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+# [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
 
-export PATH=$PATH:/usr/local/go/bin
-eval "$(~/.local/bin/mise activate)"
+# export PATH=$PATH:/usr/local/go/bin
+# eval "$(~/.local/bin/mise activate)"
 
-# export /bin/
-export PATH="$HOME/.bin:$PATH"
-export PATH="$HOME/bin:$PATH"
-export PATH=$PATH:$HOME/go/bin
+# export PATH="$HOME/.bin:$PATH"
+# export PATH="$HOME/bin:$PATH"
+# export PATH=$PATH:$HOME/go/bin
