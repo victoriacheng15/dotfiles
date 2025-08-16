@@ -88,6 +88,7 @@ read -p "Do you want to symlink your dotfiles to your home directory? [y/N]: " L
 if [[ "$LINK_DOTFILES" =~ ^[Yy]$ ]]; then
     echo -e "${GREEN}📦 Symlinking dotfiles...${NC}"
     ln -sf "$PWD/.zshrc" "$HOME/.zshrc"
+    ln -sf "$PWD/.gitconfig" "$HOME/.gitconfig"
     # ln -sf "$PWD/.zsh" "$HOME/.zsh"
     # Add more dotfiles or folders here as needed
     echo -e "${GREEN}✔️ Dotfiles symlinked${NC}"
