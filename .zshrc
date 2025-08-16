@@ -104,9 +104,76 @@ source $ZSH/oh-my-zsh.sh
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 
-for file in $HOME/.zsh/*.zsh; do
-    [[ -r "$file" ]] && source "$file"
-done
+# Always handy
+alias reload-shell='source ~/.zshrc'
+alias reboot='sudo reboot'
+alias shutdown='sudo shutdown now'
+
+alias update='sudo dnf upgrade --refresh -y'
+alias cleanup='sudo dnf autoremove -y && sudo dnf clean all'
+
+alias dev='cd $HOME/software'
+alias home='cd ~'
+alias ls='ls --color=auto -la'               # List all files in long format
+alias ll='ls -lh'               # List files with human-readable sizes
+alias la='ls -A'                # List all files except . and ..
+alias l='ls -CF'                # List files in columns
+# git
+alias g='git'
+alias gs='git status'
+alias ga='git add'
+alias gc='git commit'
+alias gcm='git commit -m'
+alias gco='git checkout'
+alias gb='git branch'
+alias gp='git push'
+alias gpl='git pull'
+alias gd='git diff'
+alias gl='git log --oneline --graph --decorate --all'
+alias gst='git stash'
+alias gsp='git stash pop'
+# Docker Shortcuts
+alias d='docker'
+alias dc='docker compose'
+alias dps='docker ps'
+alias dim='docker images'
+alias dlog='docker logs -f'
+# python env
+alias pyenv='source env/bin/activate'
+# misc
+alias dls='cp image_outputs/* /mnt/c/Users/$USER/Downloads/'
+
+create_workflow_folder() {
+  mkdir -p .github/workflows
+  echo "✅ Created .github/workflows directory"
+}
+
+first_commit() {
+  git add .
+  git commit -m "Initial commit"
+  echo "✅ Initial commit created"
+}
+
+ignore_files() {
+  if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+    echo "📄 Supported .gitignore types:"
+    npx gitignore -types
+    return 0
+  fi
+
+  if [[ "$#" -eq 0 ]]; then
+    echo "❌ Please provide at least one language/framework (e.g., node, python)"
+    echo "ℹ️ Use 'ignore_files --help' to list available types"
+    return 1
+  fi
+
+  npx gitignore "$@"
+  echo "✅ .gitignore generated for: $*"
+}
+
+# for file in $HOME/.zsh/*.zsh; do
+#     [[ -r "$file" ]] && source "$file"
+# done
 
 if [ -d "$HOME/.nvm" ]; then
     export NVM_DIR="$HOME/.nvm"
