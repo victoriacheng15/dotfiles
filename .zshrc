@@ -108,14 +108,12 @@ for file in $HOME/.zsh/*.zsh; do
     [[ -r "$file" ]] && source "$file"
 done
 
-# comment out for now
-# export NVM_DIR="$HOME/.nvm"
-# [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-# [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+if [ -d "$HOME/.nvm" ]; then
+    export NVM_DIR="$HOME/.nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+    [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+fi
 
-# export PATH=$PATH:/usr/local/go/bin
-# eval "$(~/.local/bin/mise activate)"
-
-# export PATH="$HOME/.bin:$PATH"
-# export PATH="$HOME/bin:$PATH"
-# export PATH=$PATH:$HOME/go/bin
+if [ -d "$HOME/.bin" ]; then
+    export PATH="$HOME/.bin:$PATH"
+fi
