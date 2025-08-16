@@ -1,0 +1,18 @@
+[user]
+    name = Victoria Cheng
+    email = victoria.cheng15@gmail.com
+[init]
+    defaultBranch = main
+[color]
+    ui = auto
+[alias]
+    st = status
+    co = checkout
+    br = branch
+    ci = commit
+    lg = log --oneline --graph --decorate --all
+    last = log -1 HEAD
+[pull]
+    rebase = true
+[help]
+    autocorrect = 1
