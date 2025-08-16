@@ -29,7 +29,7 @@ eval "$UPDATE_CMD"
 # --- Install Dev Tools group (Fedora only) ---
 if [ "$PKG_MANAGER" = "dnf" ]; then
     echo -e "${GREEN}📦 Installing Fedora Development Tools...${NC}"
-    sudo dnf group install -y "Development Tools"
+    sudo dnf group install development-tools
 fi
 
 source scripts/install_zsh.sh
@@ -88,7 +88,7 @@ read -p "Do you want to symlink your dotfiles to your home directory? [y/N]: " L
 if [[ "$LINK_DOTFILES" =~ ^[Yy]$ ]]; then
     echo -e "${GREEN}📦 Symlinking dotfiles...${NC}"
     ln -sf "$PWD/.zshrc" "$HOME/.zshrc"
-    ln -sf "$PWD/.zsh" "$HOME/.zsh"
+    # ln -sf "$PWD/.zsh" "$HOME/.zsh"
     # Add more dotfiles or folders here as needed
     echo -e "${GREEN}✔️ Dotfiles symlinked${NC}"
 else
