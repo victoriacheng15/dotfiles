@@ -171,6 +171,17 @@ ignore_files() {
   echo "✅ .gitignore generated for: $*"
 }
 
+install_cobra() {
+  go get -u github.com/spf13/cobra@latest
+  
+  go install github.com/spf13/cobra-cli@latest
+
+  # Initialize Cobra in the current directory (run inside your Go module)
+  cobra-cli init
+
+  echo "Cobra installed and initialized!"
+}
+
 # for file in $HOME/.zsh/*.zsh; do
 #     [[ -r "$file" ]] && source "$file"
 # done
