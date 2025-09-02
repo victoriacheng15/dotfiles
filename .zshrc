@@ -109,8 +109,27 @@ alias reload-shell='source ~/.zshrc'
 alias reboot='sudo reboot'
 alias shutdown='sudo shutdown now'
 
-alias update='sudo dnf upgrade --refresh -y'
-alias cleanup='sudo dnf autoremove -y && sudo dnf clean all'
+alias update='sudo apt update && sudo apt upgrade -y'
+alias cleanup='sudo apt autoremove -y && sudo apt clean'
+
+# Set update/cleanup aliases based on distro (Ubuntu/Debian or Fedora)
+if [ -f /etc/os-release ]; then
+  . /etc/os-release
+  case "$ID" in
+    ubuntu|debian|pop)
+      alias update='sudo apt update && sudo apt upgrade -y'
+      alias cleanup='sudo apt autoremove -y && sudo apt clean'
+      ;;
+    fedora)
+      alias update='sudo dnf upgrade --refresh -y'
+      alias cleanup='sudo dnf autoremove -y && sudo dnf clean all'
+      ;;
+    *)
+      alias update='echo "Unknown distro: $ID"'
+      alias cleanup='echo "Unknown distro: $ID"'
+      ;;
+  esac
+fi
 
 alias dev='cd $HOME/software'
 alias home='cd ~'
