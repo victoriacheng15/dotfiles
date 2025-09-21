@@ -117,12 +117,12 @@ if [ -f /etc/os-release ]; then
   . /etc/os-release
   case "$ID" in
     ubuntu|debian|pop)
-      alias update='sudo apt update && sudo apt upgrade -y'
-      alias cleanup='sudo apt autoremove -y && sudo apt clean'
+      alias update='sudo apt update && sleep 1 && sudo apt upgrade -y'
+      alias cleanup='sudo apt autoremove -y && sleep 1 && sudo apt clean'
       ;;
     fedora)
       alias update='sudo dnf upgrade --refresh -y'
-      alias cleanup='sudo dnf autoremove -y && sudo dnf clean all'
+      alias cleanup='sudo dnf autoremove -y && sleep 1 && sudo dnf clean all'
       ;;
     *)
       alias update='echo "Unknown distro: $ID"'
@@ -216,3 +216,6 @@ if [ -d "$HOME/.bin" ]; then
 fi
 
 export PATH=$PATH:$HOME/go/bin
+[[ -s "/home/victoriac/.gvm/scripts/gvm" ]] && source "/home/victoriac/.gvm/scripts/gvm"
+
+export PATH=$PATH:/usr/local/go/bin
