@@ -7,6 +7,10 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
+# Helper functions for logging
+info() { echo -e "${GREEN}[INFO] $*${NC}"; }
+error() { echo -e "${YELLOW}[ERROR] $*${NC}" >&2; }
+
 echo "🚀 Setting up dev environment..."
 
 # --- Detect Package Manager ---
@@ -51,18 +55,18 @@ install_zsh() {
   local INSTALL_CMD="$1"
 
   if ! command -v zsh >/dev/null 2>&1; then
-    echo -e "${GREEN}📦 Installing Zsh...${NC}"
+    info "Installing Zsh..."
       eval "$INSTALL_CMD zsh"
   else
-    echo -e "${GREEN}✔️ Zsh already installed${NC}"
+    info "✔️ Zsh already installed"
   fi
 
   if [ ! -d "$HOME/.oh-my-zsh" ]; then
-    echo -e "${GREEN}📦 Installing Oh My Zsh...${NC}"
+    info "Installing Oh My Zsh..."
       RUNZSH=no CHSH=no sh -c \
           "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
   else
-    echo -e "${GREEN}✔️ Oh My Zsh already installed${NC}"
+    info "✔️ Oh My Zsh already installed"
   fi
 }
 
@@ -70,7 +74,7 @@ install_docker() {
   local PKG_MANAGER="$1"
 
   if ! command -v docker >/dev/null 2>&1; then
-      echo -e "${GREEN}📦 Installing Docker...${NC}"
+      info "Installing Docker..."
       if [ "$PKG_MANAGER" = "apt" ]; then
           sudo apt remove -y docker docker-engine docker.io containerd runc || true
           sudo apt install -y ca-certificates curl gnupg lsb-release
@@ -89,10 +93,10 @@ install_docker() {
           sudo dnf install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
           sudo systemctl enable --now docker
       else
-          echo -e "${YELLOW}⚠️ Docker installation not supported for this package manager.${NC}"
+          error "Docker installation not supported for this package manager."
       fi
   else
-      echo -e "${GREEN}✔️ Docker already installed${NC}"
+      info "✔️ Docker already installed"
   fi
 }
 
@@ -100,10 +104,10 @@ install_gh_cli() {
   local INSTALL_CMD="$1"
 
   if ! command -v gh >/dev/null 2>&1; then
-    echo -e "${GREEN}📦 Installing GitHub CLI (gh)...${NC}"
-      eval "$INSTALL_CMD gh" || echo -e "${YELLOW}⚠️ Failed to install GitHub CLI from package manager${NC}"
+    info "Installing GitHub CLI (gh)..."
+      eval "$INSTALL_CMD gh" || error "Failed to install GitHub CLI from package manager"
   else
-    echo -e "${GREEN}✔️ GitHub CLI already installed${NC}"
+    info "✔️ GitHub CLI already installed"
   fi
 }
 
@@ -111,10 +115,10 @@ install_jq() {
   local INSTALL_CMD="$1"
 
   if ! command -v jq >/dev/null 2>&1; then
-    echo -e "${GREEN}📦 Installing jq...${NC}"
-      eval "$INSTALL_CMD jq" || echo -e "${YELLOW}⚠️ Failed to install jq from package manager${NC}"
+    info "Installing jq..."
+      eval "$INSTALL_CMD jq" || error "Failed to install jq from package manager"
   else
-    echo -e "${GREEN}✔️ jq already installed${NC}"
+    info "✔️ jq already installed"
   fi
 }
 
@@ -133,40 +137,43 @@ main() {
         read -p "Enter your git user.email: " GIT_EMAIL
         git config --global user.name "$GIT_NAME"
         git config --global user.email "$GIT_EMAIL"
-        echo -e "${GREEN}✔️ Git config set${NC}"
+        info "✔️ Git config set"
     else
-        echo -e "${YELLOW}⚠️ Skipping git config${NC}"
+        error "Skipping git config"
     fi
 
     # --- Setup SSH key ---
     read -p "Do you want to generate a new SSH key for Git/GitHub? [y/N]: " SETUP_SSH
     if [[ "$SETUP_SSH" =~ ^[Yy]$ ]]; then
         if [ -f "$HOME/.ssh/id_ed25519" ] || [ -f "$HOME/.ssh/id_rsa" ]; then
-            echo -e "${YELLOW}⚠️ SSH key already exists in ~/.ssh${NC}"
+            error "SSH key already exists in ~/.ssh"
         else
             read -p "Enter your email for SSH key: " SSH_EMAIL
             ssh-keygen -t ed25519 -C "$SSH_EMAIL" -f "$HOME/.ssh/id_ed25519" -N ""
-            echo -e "${GREEN}✔️ SSH key generated at ~/.ssh/id_ed25519${NC}"
+            info "✔️ SSH key generated at ~/.ssh/id_ed25519"
             echo -e "${BLUE}Your public key:${NC}"
             cat "$HOME/.ssh/id_ed25519.pub"
         fi
     else
-        echo -e "${YELLOW}⚠️ Skipping SSH key setup${NC}"
+        error "Skipping SSH key setup"
     fi
 
   # --- Symlink dotfiles ---
-  touch ~/flake.nix
   read -p "Do you want to symlink your dotfiles to your home directory? [y/N]: " LINK_DOTFILES
-    if [[ "$LINK_DOTFILES" =~ ^[Yy]$ ]]; then
-        echo -e "${GREEN}📦 Symlinking dotfiles...${NC}"
-        ln -sf "$PWD/.zshrc" "$HOME/.zshrc"
-        ln -sf "$PWD/.gitconfig" "$HOME/.gitconfig"
-        ln -sf "$PWD/flake.nix" "$HOME/flake.nix"
-        # Add more dotfiles or folders here as needed
-        echo -e "${GREEN}✔️ Dotfiles symlinked${NC}"
-    else
-        echo -e "${YELLOW}⚠️ Skipping dotfile symlinking${NC}"
-    fi
+  if [[ "$LINK_DOTFILES" =~ ^[Yy]$ ]]; then
+    # Simple symlink check and log for each file
+    for file in .zshrc .gitconfig; do
+      if [ -L "$HOME/$file" ]; then
+        info "$HOME/$file is a symlink."
+      else
+        info "$HOME/$file is NOT a symlink. Creating symlink..."
+        ln -sf "$PWD/$file" "$HOME/$file"
+        info "Linked $HOME/$file -> $PWD/$file"
+      fi
+    done
+  else
+    error "Skipping dotfile symlinking"
+  fi
 }
 
 # Call main setup

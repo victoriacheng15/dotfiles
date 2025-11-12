@@ -186,7 +186,3 @@ install_cobra() {
 
   echo "Cobra installed and initialized!"
 }
-
-if [ -f "$HOME/flake.nix" ]; then
-  nix develop ~/ --command zsh
-fi
