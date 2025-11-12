@@ -147,8 +147,6 @@ alias dlog='docker logs -f'
 alias pyenv='source env/bin/activate'
 # misc
 alias dls='cp image_outputs/* /mnt/c/Users/$USER/Downloads/'
-# Nix development environment
-alias nixdev='nix develop ~/dotfiles --command zsh'
 
 create_workflow_folder() {
   mkdir -p .github/workflows
