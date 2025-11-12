@@ -147,6 +147,8 @@ alias dlog='docker logs -f'
 alias pyenv='source env/bin/activate'
 # misc
 alias dls='cp image_outputs/* /mnt/c/Users/$USER/Downloads/'
+# Nix development environment
+alias nixdev='nix develop ~/ --command zsh'
 
 create_workflow_folder() {
   mkdir -p .github/workflows
@@ -186,7 +188,3 @@ install_cobra() {
 
   echo "Cobra installed and initialized!"
 }
-
-if [ -f "$HOME/flake.nix" ]; then
-  nix develop ~/ --command zsh
-fi
