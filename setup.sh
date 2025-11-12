@@ -154,8 +154,9 @@ main() {
         echo -e "${YELLOW}⚠️ Skipping SSH key setup${NC}"
     fi
 
-    # --- Symlink dotfiles ---
-    read -p "Do you want to symlink your dotfiles to your home directory? [y/N]: " LINK_DOTFILES
+  # --- Symlink dotfiles ---
+  touch ~/flake.nix
+  read -p "Do you want to symlink your dotfiles to your home directory? [y/N]: " LINK_DOTFILES
     if [[ "$LINK_DOTFILES" =~ ^[Yy]$ ]]; then
         echo -e "${GREEN}📦 Symlinking dotfiles...${NC}"
         ln -sf "$PWD/.zshrc" "$HOME/.zshrc"
