@@ -137,20 +137,6 @@ alias ls='ls --color=auto -la'               # List all files in long format
 alias ll='ls -lh'               # List files with human-readable sizes
 alias la='ls -A'                # List all files except . and ..
 alias l='ls -CF'                # List files in columns
-# git
-alias g='git'
-alias gs='git status'
-alias ga='git add'
-alias gc='git commit'
-alias gcm='git commit -m'
-alias gco='git checkout'
-alias gb='git branch'
-alias gp='git push'
-alias gpl='git pull'
-alias gd='git diff'
-alias gl='git log --oneline --graph --decorate --all'
-alias gst='git stash'
-alias gsp='git stash pop'
 # Docker Shortcuts
 alias d='docker'
 alias dc='docker compose'
@@ -201,21 +187,6 @@ install_cobra() {
   echo "Cobra installed and initialized!"
 }
 
-# for file in $HOME/.zsh/*.zsh; do
-#     [[ -r "$file" ]] && source "$file"
-# done
-
-if [ -d "$HOME/.nvm" ]; then
-    export NVM_DIR="$HOME/.nvm"
-    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-    [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+if [ -f "$HOME/flake.nix" ]; then
+  nix develop ~/ --command zsh
 fi
-
-if [ -d "$HOME/.bin" ]; then
-    export PATH="$HOME/.bin:$PATH"
-fi
-
-export PATH=$PATH:$HOME/go/bin
-[[ -s "/home/victoriac/.gvm/scripts/gvm" ]] && source "/home/victoriac/.gvm/scripts/gvm"
-
-export PATH=$PATH:/usr/local/go/bin

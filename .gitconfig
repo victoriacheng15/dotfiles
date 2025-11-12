@@ -6,18 +6,31 @@
 [color]
     ui = auto
 [alias]
-    st = status
-    co = checkout
+    amend = commit --amend --no-edit
     br = branch
     ci = commit
-    tree = log --oneline --graph --decorate --all
-    last = log -1 HEAD
-    unstage = reset HEAD --
-    amend = commit --amend --no-edit
-    undo = reset --soft HEAD~1
+    co = checkout
+    ga = add
+    gb = branch
+    gc = commit
+    gcm = commit -m
+    gco = checkout
+    gd = diff
+    gl = log --oneline --graph --decorate --all
+    gp = push
+    gpl = pull
+    gsp = stash pop
+    gs = status
+    gst = stash
+    g = !git
     hist = log --pretty=format:'%h %ad | %s%d [%an]' --graph --date=short
-    who = shortlog -sne --all --no-merges
+    last = log -1 HEAD
     recent = log --pretty=format:'%C(yellow)%h%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=relative -n 10
+    st = status
+    tree = log --oneline --graph --decorate --all
+    undo = reset --soft HEAD~1
+    unstage = reset HEAD --
+    who = shortlog -sne --all --no-merges
 [pull]
     rebase = true
 [fetch]
