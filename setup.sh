@@ -160,16 +160,20 @@ main() {
 
   # --- Symlink dotfiles ---
   read -p "Do you want to symlink your dotfiles to your home directory? [y/N]: " LINK_DOTFILES
-    if [[ "$LINK_DOTFILES" =~ ^[Yy]$ ]]; then
-        info "Symlinking dotfiles..."
-        ln -sf "$PWD/.zshrc" "$HOME/.zshrc"
-        ln -sf "$PWD/.gitconfig" "$HOME/.gitconfig"
-        ln -sf "$PWD/flake.nix" "$HOME/flake.nix"
-        # Add more dotfiles or folders here as needed
-        info "✔️ Dotfiles symlinked"
-    else
-        error "Skipping dotfile symlinking"
-    fi
+  if [[ "$LINK_DOTFILES" =~ ^[Yy]$ ]]; then
+    # Simple symlink check and log for each file
+    for file in .zshrc .gitconfig; do
+      if [ -L "$HOME/$file" ]; then
+        info "$HOME/$file is a symlink."
+      else
+        info "$HOME/$file is NOT a symlink. Creating symlink..."
+        ln -sf "$PWD/$file" "$HOME/$file"
+        info "Linked $HOME/$file -> $PWD/$file"
+      fi
+    done
+  else
+    error "Skipping dotfile symlinking"
+  fi
 }
 
 # Call main setup
