@@ -15,20 +15,21 @@ echo "🚀 Setting up dev environment..."
 
 # --- Detect Package Manager ---
 if command -v apt >/dev/null 2>&1; then
-    PKG_MANAGER="apt"
-    UPDATE_CMD="sudo apt update && sudo apt upgrade -y"
-    INSTALL_CMD="sudo apt install -y"
+  PKG_MANAGER="apt"
+  echo "Running: sudo apt update && sudo apt upgrade -y"
+  sudo apt update >/dev/null 2>&1 && sudo apt upgrade -y >/dev/null 2>&1
+  INSTALL_CMD="sudo apt install -y"
 elif command -v dnf >/dev/null 2>&1; then
-    PKG_MANAGER="dnf"
-    UPDATE_CMD="sudo dnf upgrade --refresh -y"
-    INSTALL_CMD="sudo dnf install -y"
+  PKG_MANAGER="dnf"
+  echo "Running: sudo dnf upgrade --refresh -y"
+  sudo dnf upgrade --refresh -y >/dev/null 2>&1
+  INSTALL_CMD="sudo dnf install -y"
 else
     echo "❌ No supported package manager found (apt or dnf). Exiting."
     exit 1
 fi
 
 echo "📦 Detected package manager: $PKG_MANAGER"
-eval "$UPDATE_CMD"
 
 # --- Install Dev Tools group (Fedora only) ---
 if [ "$PKG_MANAGER" = "dnf" ]; then
@@ -39,7 +40,7 @@ fi
 # Install Nix package manager
 install_nix() {
     if command -v nix >/dev/null 2>&1; then
-        info "Nix already installed."
+        info "✔️ Nix already installed."
         return 0
     fi
     info "Installing Nix package manager..."
@@ -84,7 +85,6 @@ install_docker() {
             "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
             $(lsb_release -cs) stable" | \
             sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-          sudo apt update
           sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
       elif [ "$PKG_MANAGER" = "dnf" ]; then
           sudo dnf -y remove docker docker-client docker-client-latest docker-common docker-latest docker-latest-logrotate docker-logrotate docker-engine || true
@@ -122,6 +122,87 @@ install_jq() {
   fi
 }
 
+install_azure() {
+  if command -v az >/dev/null 2>&1; then
+    info "✔️ Azure CLI already installed"
+    return
+  fi
+  if [ "$PKG_MANAGER" = "apt" ]; then
+    sudo apt-get install -y ca-certificates curl gnupg lsb-release apt-transport-https
+    curl -sL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor | sudo tee /usr/share/keyrings/microsoft-archive-keyring.gpg >/dev/null
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/microsoft-archive-keyring.gpg] https://packages.microsoft.com/repos/azure-cli/ $(lsb_release -cs) main" \
+      | sudo tee /etc/apt/sources.list.d/azure-cli.list
+  sudo apt-get update >/dev/null 2>&1 && sudo apt-get install -y azure-cli
+  elif [ "$PKG_MANAGER" = "dnf" ]; then
+    sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc
+    sudo tee /etc/yum.repos.d/azure-cli.repo > /dev/null <<'EOF'
+[azure-cli]
+name=Azure CLI
+baseurl=https://packages.microsoft.com/yumrepos/azure-cli
+enabled=1
+gpgcheck=1
+gpgkey=https://packages.microsoft.com/keys/microsoft.asc
+EOF
+    sudo dnf -y install azure-cli
+  fi
+}
+
+install_aws() {
+  echo "AWS installation function placeholder"
+}
+
+install_gcp() {
+  echo "GCP installation function placeholder"
+}
+
+setup_git() {
+  read -p "Do you want to configure git (name, email, etc)? [y/N]: " SETUP_GIT
+  if [[ "$SETUP_GIT" =~ ^[Yy]$ ]]; then
+      read -p "Enter your git user.name: " GIT_NAME
+      read -p "Enter your git user.email: " GIT_EMAIL
+      git config --global user.name "$GIT_NAME"
+      git config --global user.email "$GIT_EMAIL"
+      info "✔️ Git config set"
+  else
+      error "Skipping git config"
+  fi
+}
+
+setup_ssh() {
+  read -p "Do you want to generate a new SSH key for Git/GitHub? [y/N]: " SETUP_SSH
+  if [[ "$SETUP_SSH" =~ ^[Yy]$ ]]; then
+      if [ -f "$HOME/.ssh/id_ed25519" ] || [ -f "$HOME/.ssh/id_rsa" ]; then
+          error "SSH key already exists in ~/.ssh"
+      else
+          read -p "Enter your email for SSH key: " SSH_EMAIL
+          ssh-keygen -t ed25519 -C "$SSH_EMAIL" -f "$HOME/.ssh/id_ed25519" -N ""
+          info "✔️ SSH key generated at ~/.ssh/id_ed25519"
+          echo -e "${BLUE}Your public key:${NC}"
+          cat "$HOME/.ssh/id_ed25519.pub"
+      fi
+  else
+      error "Skipping SSH key setup"
+  fi
+}
+
+setup_symlink(){
+    read -p "Do you want to symlink your dotfiles to your home directory? [y/N]: " LINK_DOTFILES
+    if [[ "$LINK_DOTFILES" =~ ^[Yy]$ ]]; then
+      # Simple symlink check and log for each file
+      for file in .zshrc .gitconfig; do
+        if [ -L "$HOME/$file" ]; then
+          info "$HOME/$file is a symlink."
+        else
+          info "$HOME/$file is NOT a symlink. Creating symlink..."
+          ln -sf "$PWD/$file" "$HOME/$file"
+          info "Linked $HOME/$file -> $PWD/$file"
+        fi
+      done
+    else
+      error "Skipping dotfile symlinking"
+    fi
+}
+
 # --- Main setup routine ---
 main() {
     install_nix
@@ -129,53 +210,13 @@ main() {
     install_docker "$PKG_MANAGER"
     install_gh_cli "$INSTALL_CMD"
     install_jq "$INSTALL_CMD"
+    install_azure
 
-    # --- Setup Git config ---
-    read -p "Do you want to configure git (name, email, etc)? [y/N]: " SETUP_GIT
-    if [[ "$SETUP_GIT" =~ ^[Yy]$ ]]; then
-        read -p "Enter your git user.name: " GIT_NAME
-        read -p "Enter your git user.email: " GIT_EMAIL
-        git config --global user.name "$GIT_NAME"
-        git config --global user.email "$GIT_EMAIL"
-        info "✔️ Git config set"
-    else
-        error "Skipping git config"
-    fi
-
-    # --- Setup SSH key ---
-    read -p "Do you want to generate a new SSH key for Git/GitHub? [y/N]: " SETUP_SSH
-    if [[ "$SETUP_SSH" =~ ^[Yy]$ ]]; then
-        if [ -f "$HOME/.ssh/id_ed25519" ] || [ -f "$HOME/.ssh/id_rsa" ]; then
-            error "SSH key already exists in ~/.ssh"
-        else
-            read -p "Enter your email for SSH key: " SSH_EMAIL
-            ssh-keygen -t ed25519 -C "$SSH_EMAIL" -f "$HOME/.ssh/id_ed25519" -N ""
-            info "✔️ SSH key generated at ~/.ssh/id_ed25519"
-            echo -e "${BLUE}Your public key:${NC}"
-            cat "$HOME/.ssh/id_ed25519.pub"
-        fi
-    else
-        error "Skipping SSH key setup"
-    fi
-
-  # --- Symlink dotfiles ---
-  read -p "Do you want to symlink your dotfiles to your home directory? [y/N]: " LINK_DOTFILES
-  if [[ "$LINK_DOTFILES" =~ ^[Yy]$ ]]; then
-    # Simple symlink check and log for each file
-    for file in .zshrc .gitconfig; do
-      if [ -L "$HOME/$file" ]; then
-        info "$HOME/$file is a symlink."
-      else
-        info "$HOME/$file is NOT a symlink. Creating symlink..."
-        ln -sf "$PWD/$file" "$HOME/$file"
-        info "Linked $HOME/$file -> $PWD/$file"
-      fi
-    done
-  else
-    error "Skipping dotfile symlinking"
-  fi
+    setup_git
+    setup_ssh
+    setup_symlink
 }
 
 # Call main setup
 main
-echo "🎉 Setup complete! Restart your terminal or run: exec zsh"
+echo "🎉 Setup complete! Restart your terminal"
