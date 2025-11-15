@@ -174,19 +174,6 @@ install_gcp() {
   echo "GCP installation function placeholder"
 }
 
-setup_git() {
-  read -p "Do you want to configure git (name, email, etc)? [y/N]: " SETUP_GIT
-  if [[ "$SETUP_GIT" =~ ^[Yy]$ ]]; then
-      read -p "Enter your git user.name: " GIT_NAME
-      read -p "Enter your git user.email: " GIT_EMAIL
-      git config --global user.name "$GIT_NAME"
-      git config --global user.email "$GIT_EMAIL"
-      info "✔️ Git config set"
-  else
-      error "Skipping git config"
-  fi
-}
-
 setup_ssh() {
   read -p "Do you want to generate a new SSH key for Git/GitHub? [y/N]: " SETUP_SSH
   if [[ "$SETUP_SSH" =~ ^[Yy]$ ]]; then
@@ -237,7 +224,6 @@ main() {
     install_cockpit "$INSTALL_CMD"
   fi
 
-    setup_git
     setup_ssh
     setup_symlink
 }
