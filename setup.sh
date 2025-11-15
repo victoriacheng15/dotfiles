@@ -147,6 +147,25 @@ EOF
   fi
 }
 
+install_cockpit() {
+  local INSTALL_CMD="$1"
+
+  # Cockpit doesn't always have a CLI binary, so we check systemd instead
+  if ! systemctl is-active --quiet cockpit 2>/dev/null; then
+    info "Installing Cockpit..."
+    eval "$INSTALL_CMD cockpit" || error "Failed to install Cockpit"
+
+    # Enable/start cockpit via socket (preferred), fallback to service
+    if command -v systemctl >/dev/null 2>&1; then
+      systemctl enable --now cockpit.socket 2>/dev/null || \
+      systemctl enable --now cockpit 2>/dev/null || \
+      error "Failed to enable/start Cockpit"
+    fi
+  else
+    info "✔️ Cockpit already installed"
+  fi
+}
+
 install_aws() {
   echo "AWS installation function placeholder"
 }
@@ -211,6 +230,12 @@ main() {
     install_gh_cli "$INSTALL_CMD"
     install_jq "$INSTALL_CMD"
     install_azure
+
+  # --- Home server admin (Cockpit) ---
+  read -p "Do you want to install Cockpit (web admin for home servers)? [y/N]: " INSTALL_COCKPIT
+  if [[ "$INSTALL_COCKPIT" =~ ^[Yy]$ ]]; then
+    install_cockpit "$INSTALL_CMD"
+  fi
 
     setup_git
     setup_ssh
