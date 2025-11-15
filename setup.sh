@@ -235,8 +235,6 @@ main() {
   read -p "Do you want to install Cockpit (web admin for home servers)? [y/N]: " INSTALL_COCKPIT
   if [[ "$INSTALL_COCKPIT" =~ ^[Yy]$ ]]; then
     install_cockpit "$INSTALL_CMD"
-  else
-    info "Skipping Cockpit installation"
   fi
 
     setup_git
