@@ -6,23 +6,16 @@
 [color]
     ui = auto
 [alias]
+    g = !git
     amend = commit --amend --no-edit
-    br = branch
-    ci = commit
-    co = checkout
     ga = add
     gb = branch
     gc = commit
-    gcm = commit -m
     gco = checkout
     gd = diff
     gl = log --oneline --graph --decorate --all
     gp = push
-    gpl = pull
-    gsp = stash pop
-    gs = status
     gst = stash
-    g = !git
     hist = log --pretty=format:'%h %ad | %s%d [%an]' --graph --date=short
     last = log -1 HEAD
     recent = log --pretty=format:'%C(yellow)%h%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=relative -n 10
