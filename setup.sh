@@ -144,6 +144,31 @@ install_gcp() {
   echo "GCP installation function placeholder"
 }
 
+install_tools() {
+  local INSTALL_CMD="$1"
+  local tools=("jq" "ripgrep" "fd-find")
+
+  for tool in "${tools[@]}"; do
+    if ! command -v "$tool" >/dev/null 2>&1; then
+      info "Installing $tool..."
+      eval "$INSTALL_CMD $tool" || error "Failed to install $tool from package manager"
+    else
+      info "✔️ $tool already installed"
+    fi
+  done
+}
+
+install_nvm() {
+  # Only install if $HOME/.nvm does not exist
+  if [ ! -d "$HOME/.nvm" ]; then
+    info "Installing NVM (Node Version Manager)..."
+    NVM_VERSION=$(curl -s https://api.github.com/repos/nvm-sh/nvm/releases/latest | jq -r .tag_name)
+    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/$NVM_VERSION/install.sh | bash
+  else
+    info "✔️ NVM already installed"
+  fi
+}
+
 install_cockpit() {
   local INSTALL_CMD="$1"
 
@@ -160,28 +185,6 @@ install_cockpit() {
     fi
   else
     info "✔️ Cockpit already installed"
-  fi
-}
-
-install_jq() {
-  local INSTALL_CMD="$1"
-
-  if ! command -v jq >/dev/null 2>&1; then
-    info "Installing jq..."
-      eval "$INSTALL_CMD jq" || error "Failed to install jq from package manager"
-  else
-    info "✔️ jq already installed"
-  fi
-}
-
-install_nvm() {
-  # Only install if $HOME/.nvm does not exist
-  if [ ! -d "$HOME/.nvm" ]; then
-    info "Installing NVM (Node Version Manager)..."
-    NVM_VERSION=$(curl -s https://api.github.com/repos/nvm-sh/nvm/releases/latest | jq -r .tag_name)
-    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/$NVM_VERSION/install.sh | bash
-  else
-    info "✔️ NVM already installed"
   fi
 }
 
@@ -227,7 +230,7 @@ main() {
     install_docker "$PKG_MANAGER"
     install_gh_cli "$INSTALL_CMD"
     install_azure
-    install_jq "$INSTALL_CMD"
+    install_tools "$INSTALL_CMD"
     install_nvm
 
   # --- Home server admin (Cockpit) ---
