@@ -187,6 +187,40 @@ install_cobra() {
   echo "Cobra installed and initialized!"
 }
 
+gstat() {
+    local BASE_DIR="$HOME/software"
+
+    echo "---------------------------------"
+    echo "  Global Git Status Scanner"
+    echo "  Source: $BASE_DIR"
+    echo "---------------------------------"
+
+    # Iterate through all subdirectories in BASE_DIR
+    for repo in "$BASE_DIR"/*; do
+        # Only process if it is a directory
+        if [ -d "$repo" ]; then
+            local name=$(basename "$repo")
+            
+            # Check if it's a git repo
+            if [ ! -d "$repo/.git" ]; then
+                 # Optional: Uncomment to see non-git folders
+                 continue
+            fi
+
+            # Check for uncommitted changes
+            # --porcelain returns empty string if clean
+            if [ -n "$(git -C "$repo" status --porcelain)" ]; then
+                printf "%-25s ❌ Dirty\n" "$name"
+            else
+                printf "%-25s ✅ Clean\n" "$name"
+            fi
+        fi
+    done
+    echo "---------------------------------"
+}
+
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+
+export KUBECONFIG=~/.kube/config
