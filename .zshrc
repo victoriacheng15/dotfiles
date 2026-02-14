@@ -143,21 +143,8 @@ alias dc='docker compose'
 alias dps='docker ps'
 alias dim='docker images'
 alias dlog='docker logs -f'
-# python env
-alias pyenv='source env/bin/activate'
 # misc
 alias dls='cp image_outputs/* /mnt/c/Users/$USER/Downloads/'
-
-create_workflow_folder() {
-  mkdir -p .github/workflows
-  echo "✅ Created .github/workflows directory"
-}
-
-first_commit() {
-  git add .
-  git commit -m "Initial commit"
-  echo "✅ Initial commit created"
-}
 
 ignore_files() {
   if [[ "$1" == "-h" || "$1" == "--help" ]]; then
@@ -174,17 +161,6 @@ ignore_files() {
 
   npx gitignore "$@"
   echo "✅ .gitignore generated for: $*"
-}
-
-install_cobra() {
-  go get -u github.com/spf13/cobra@latest
-  
-  go install github.com/spf13/cobra-cli@latest
-
-  # Initialize Cobra in the current directory (run inside your Go module)
-  cobra-cli init
-
-  echo "Cobra installed and initialized!"
 }
 
 gstat() {
@@ -217,6 +193,46 @@ gstat() {
         fi
     done
     echo "---------------------------------"
+}
+
+# GitHub PR Helper: Creates or updates a PR based on commit.md
+ppr() {
+    local COMMIT_FILE="commit.md"
+
+    if [[ ! -f "$COMMIT_FILE" ]]; then
+        echo "❌ Error: $COMMIT_FILE not found in current directory."
+        return 1
+    fi
+
+    # Create temp file for body and ensure cleanup
+    local BODY_FILE=$(mktemp)
+    trap "rm -f '$BODY_FILE'" EXIT
+
+    # Extract body: from '### Summary' to just before '## Execution Commands'
+    awk '/### Summary/,/## Execution Commands/ { if (!/## Execution Commands/) print }' "$COMMIT_FILE" > "$BODY_FILE"
+
+    # Extract title from the git commit command line in commit.md
+    local TITLE=$(grep "git commit -m" "$COMMIT_FILE" | sed 's/.*-m "\(.*\)".*/\1/')
+
+    if [[ "$1" == "--dry-run" ]]; then
+        echo "--- Extracted PR Body ---"
+        cat "$BODY_FILE"
+        echo "-------------------------"
+        if gh pr view >/dev/null 2>&1; then
+            echo "🔍 DRY RUN: gh pr edit --body-file <temp_file>"
+        else
+            echo "🔍 DRY RUN: gh pr create --title \"$TITLE\" --body-file <temp_file>"
+        fi
+        return 0
+    fi
+
+    if gh pr view >/dev/null 2>&1; then
+        echo "🔄 Existing PR found. Updating body..."
+        gh pr edit --body-file "$BODY_FILE"
+    else
+        echo "🚀 Creating new PR: $TITLE"
+        gh pr create --title "$TITLE" --body-file "$BODY_FILE"
+    fi
 }
 
 export NVM_DIR="$HOME/.nvm"
