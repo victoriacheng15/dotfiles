@@ -235,6 +235,42 @@ ppr() {
     fi
 }
 
+# Method 1: Fetch issue body and save as issue-[num].md
+# Usage: fetch_issue <issue_number>
+fetch_issue() {
+    local repo="victoriacheng15/blog-drafts"
+    local issue_no=$1
+    if [[ -z "$issue_no" ]]; then
+        echo "Usage: fetch_issue <issue_number>"
+        return 1
+    fi
+
+    local file_path="issue-${issue_no}.md"
+    echo "Fetching issue #$issue_no from $repo to $file_path..."
+    gh issue view "$issue_no" --repo "$repo" --json body --jq .body > "$file_path"
+}
+
+# Method 2: Update issue body from a local file
+# Usage: update_issue <issue_number> <file_path>
+update_issue() {
+    local repo="victoriacheng15/blog-drafts"
+    local issue_no=$1
+    local file_path=$2
+
+    if [[ -z "$issue_no" || -z "$file_path" ]]; then
+        echo "Usage: update_issue <issue_number> <file_path>"
+        return 1
+    fi
+
+    if [[ ! -f "$file_path" ]]; then
+        echo "Error: File $file_path not found."
+        return 1
+    fi
+
+    echo "Updating issue #$issue_no in $repo from $file_path..."
+    gh issue edit "$issue_no" --repo "$repo" --body-file "$file_path"
+}
+
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
