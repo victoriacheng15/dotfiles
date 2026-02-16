@@ -271,6 +271,43 @@ update_issue() {
     gh issue edit "$issue_no" --repo "$repo" --body-file "$file_path"
 }
 
+# Method 3: Create a new LinkedIn-only issue
+# Usage: create_linkedin_issue <file_path>
+create_linkedin_issue() {
+  local file="$1"
+  local labels="ln-only"
+
+  if [ -z "$file" ]; then
+    echo "Usage: $0 <path-to-markdown-file>"
+    exit 1
+  fi
+
+  if [ ! -f "$file" ]; then
+    echo "Error: File '$file' not found."
+    exit 1
+  fi
+
+  # Extract title from the first line: "🌊🌊🌊 - [Title]"
+  # Removes "🌊🌊🌊 - " prefix
+  local title
+  title=$(head -n 1 "$file" | sed 's/^🌊🌊🌊 - //')
+
+  if [ -z "$title" ]; then
+      echo "Error: Could not extract title from the first line of $file"
+      exit 1
+  fi
+
+  echo "Creating LinkedIn Only issue..."
+  echo "Title: $title"
+  echo "File:  $file"
+
+  gh issue create \
+    --repo victoriacheng15/blog-drafts \
+    --title "$title" \
+    --body-file "$file" \
+    --label "$labels"
+}
+
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
