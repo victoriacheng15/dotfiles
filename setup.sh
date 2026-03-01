@@ -137,7 +137,7 @@ EOF"
 # --- 4. MODULES: TOOL INSTALLERS ---
 install_shell_tools() {
     info "Installing modern shell utilities..."
-    local tools=(jq ripgrep bat eza btop direnv gh)
+    local tools=(jq ripgrep bat eza btop direnv gh stow)
     for t in "${tools[@]}"; do pkg_install "$t"; done
 
     if [[ "$SERVER_MODE" == "false" ]]; then
