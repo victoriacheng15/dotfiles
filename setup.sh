@@ -134,7 +134,7 @@ EOF"
 # --- 4. MODULES: TOOL INSTALLERS ---
 install_shell_tools() {
     info "Installing modern shell utilities..."
-    local tools=(jq ripgrep bat eza btop direnv gh stow)
+    local tools=(jq ripgrep bat btop direnv gh stow)
     for t in "${tools[@]}"; do pkg_install "$t"; done
 
     if [[ "$SERVER_MODE" == "false" ]]; then
@@ -155,40 +155,40 @@ install_shell_tools() {
     fi
 }
 
-install_runtimes() {
-    # Nix
-    if ! command -v nix >/dev/null 2>&1; then
-        info "Installing Nix..."
-        execute "curl -L https://nixos.org/nix/install | sh -s -- --daemon"
-    fi
-    # NVM (Dynamic Version Lookup)
-    if [[ ! -d "$HOME/.nvm" ]]; then
-        info "Fetching latest NVM version..."
-        local latest_nvm="v0.39.7" # Default fallback
-        if command -v jq >/dev/null 2>&1 && [[ "$DRY_RUN" == "false" ]]; then
-            latest_nvm=$(curl -s https://api.github.com/repos/nvm-sh/nvm/releases/latest | jq -r .tag_name)
-        fi
-        info "Installing NVM $latest_nvm..."
-        execute "curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/$latest_nvm/install.sh | bash"
+# install_runtimes() {
+#     # Nix
+#     if ! command -v nix >/dev/null 2>&1; then
+#         info "Installing Nix..."
+#         execute "curl -L https://nixos.org/nix/install | sh -s -- --daemon"
+#     fi
+#     # NVM (Dynamic Version Lookup)
+#     if [[ ! -d "$HOME/.nvm" ]]; then
+#         info "Fetching latest NVM version..."
+#         local latest_nvm="v0.39.7" # Default fallback
+#         if command -v jq >/dev/null 2>&1 && [[ "$DRY_RUN" == "false" ]]; then
+#             latest_nvm=$(curl -s https://api.github.com/repos/nvm-sh/nvm/releases/latest | jq -r .tag_name)
+#         fi
+#         info "Installing NVM $latest_nvm..."
+#         execute "curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/$latest_nvm/install.sh | bash"
         
-        # Automate Node LTS and Gemini CLI
-        info "Installing Node.js LTS and Gemini CLI..."
-        execute "source \$HOME/.nvm/nvm.sh && nvm install --lts && npm install -g @google/gemini-cli"
-    fi
+#         # Automate Node LTS and Gemini CLI
+#         info "Installing Node.js LTS and Gemini CLI..."
+#         execute "source \$HOME/.nvm/nvm.sh && nvm install --lts && npm install -g @google/gemini-cli"
+#     fi
     
-    # OpenTofu (Official Multi-OS Installer)
-    if ! command -v tofu >/dev/null 2>&1; then
-        info "Installing OpenTofu..."
-        execute "curl --proto '=https' --tlsv1.2 -fsSL https://get.opentofu.org/install-opentofu.sh | sh -s -- --install-method standalone"
-    fi
+#     # OpenTofu (Official Multi-OS Installer)
+#     if ! command -v tofu >/dev/null 2>&1; then
+#         info "Installing OpenTofu..."
+#         execute "curl --proto '=https' --tlsv1.2 -fsSL https://get.opentofu.org/install-opentofu.sh | sh -s -- --install-method standalone"
+#     fi
 
-    # Go (Native Package)
-    pkg_install "go"
+#     # Go (Native Package)
+#     pkg_install "go"
 
-    # FUTURE ROADMAP: Placeholder for Rust
-    # info "For Go (Golang): https://go.dev/doc/install"
-    # info "For Rust (rustup): curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh"
-}
+#     # FUTURE ROADMAP: Placeholder for Rust
+#     # info "For Go (Golang): https://go.dev/doc/install"
+#     # info "For Rust (rustup): curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh"
+# }
 
 install_containers() {
     info "Installing Docker suite..."
@@ -270,7 +270,7 @@ main() {
     detect_os
     setup_repos
     install_shell_tools
-    install_runtimes
+    # install_runtimes
     install_containers
     install_k8s
     install_ai_extensions
