@@ -96,16 +96,6 @@ pkg_install() {
 }
 
 # --- 3. REPOSITORIES & CORE BUILD TOOLS ---
-setup_core() {
-    info "Setting up core build environment (C++ toolchain)..."
-    if [[ "$PKG_MGR" == "apt" ]]; then
-        execute "sudo apt update && sudo apt install -y build-essential ca-certificates curl gnupg"
-    elif [[ "$PKG_MGR" == "dnf" ]]; then
-        execute "sudo dnf group install -y \"Development Tools\""
-        execute "sudo dnf install -y dnf-plugins-core"
-    fi
-}
-
 setup_repos() {
     info "Setting up external repositories..."
     if [[ "$PKG_MGR" == "apt" ]]; then
@@ -271,7 +261,6 @@ main() {
     [[ "$SERVER_MODE" == "true" ]] && info "🖥️ RUNNING IN SERVER MODE (Skipping desktop shell setup)"
 
     detect_os
-    setup_core
     setup_repos
     install_shell_tools
     install_runtimes
