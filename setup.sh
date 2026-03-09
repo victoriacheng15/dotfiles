@@ -100,17 +100,24 @@ setup_repos() {
     info "Setting up external repositories..."
     if [[ "$PKG_MGR" == "apt" ]]; then
         execute "sudo apt update && sudo apt install -y ca-certificates curl gnupg"
-        # Docker
-        execute "sudo install -m 0755 -d /etc/apt/keyrings"
+        execute "sudo mkdir -p /etc/apt/keyrings"
+        
+        # Docker: Modern Signed-By approach
         execute "curl -fsSL https://download.docker.com/linux/$OS_ID/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg --yes"
         execute "echo \"deb [arch=\$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/$OS_ID \$(lsb_release -cs) stable\" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null"
-        # GitHub CLI
-        execute "curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg"
-        execute "echo \"deb [arch=\$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main\" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null"
+        
+        # GitHub CLI: Modern Signed-By approach
+        execute "curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo gpg --dearmor -o /etc/apt/keyrings/githubcli-archive-keyring.gpg --yes"
+        execute "echo \"deb [arch=\$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main\" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null"
+        
         execute "sudo apt update"
     elif [[ "$PKG_MGR" == "dnf" ]]; then
-        # Docker
-        execute "sudo dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo"
+        # Docker (Direct download is the most resilient for DNF4/DNF5)
+        execute "sudo curl -fsSL https://download.docker.com/linux/fedora/docker-ce.repo -o /etc/yum.repos.d/docker-ce.repo"
+        
+        # GitHub CLI (Direct download for DNF5/Fedora 43 compatibility)
+        execute "sudo curl -fsSL https://cli.github.com/packages/rpm/gh-cli.repo -o /etc/yum.repos.d/gh-cli.repo"
+
         # Azure CLI
         execute "sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc"
         execute "sudo tee /etc/yum.repos.d/azure-cli.repo <<EOF
