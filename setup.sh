@@ -240,12 +240,21 @@ install_ai_extensions() {
 
 # --- 5. FINALIZATION ---
 setup_symlinks() {
-    info "Symlinking dotfiles..."
+    info "Symlinking dotfiles with GNU Stow..."
+    
+    # Stow fails if the target exists and is not a symlink.
+    # We backup existing regular files to ensure a clean Stow operation.
     for f in .zshrc .gitconfig; do
-        [[ -L "$HOME/$f" ]] && continue
-        [[ -f "$HOME/$f" ]] && execute "mv $HOME/$f $HOME/$f.backup"
-        execute "ln -sf $PWD/$f $HOME/$f"
+        if [[ -f "$HOME/$f" && ! -L "$HOME/$f" ]]; then
+            warn "Existing file $HOME/$f found. Backing up to $f.backup"
+            execute "mv \"$HOME/$f\" \"$HOME/$f.backup\""
+        fi
     done
+
+    # -R (restow): Prunes obsolete links and creates new ones.
+    # -t (target): Directs symlinks to the home directory.
+    # --ignore: Prevents metadata and scripts from being symlinked.
+    execute "stow -R -t \"$HOME\" --ignore='setup.sh|README.md' ."
 }
 
 # --- 6. MAIN ORCHESTRATION ---
