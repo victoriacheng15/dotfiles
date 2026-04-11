@@ -5,7 +5,7 @@
 # ==============================================================================
 # Overhauled: Monday, February 16, 2026
 # Targets: Ubuntu/Debian & Fedora
-# Features: Zsh, Docker, OpenTofu, K3s, K9s, Helm, Nix, NVM, and modern CLI tools.
+# Features: Zsh, Docker on Ubuntu/Debian, K3s, Helm, GitHub CLI, and desktop runtimes.
 # ==============================================================================
 # 🚀 USAGE:
 #   Daily Driver:  bash setup.sh
@@ -19,19 +19,46 @@
 # docker run -it --rm -v "$(pwd):/root/dotfiles" -w /root/dotfiles fedora:39 bash -c "dnf install -y sudo && bash setup.sh"
 # ==============================================================================
 
-set -eo pipefail # Exit on error, handle pipe failures
+# Exit on error, unset vars, and pipe failures.
+set -euo pipefail
+
+# Fedora package group reference:
+# Copy/paste later if you want to install more Fedora groups manually.
+# Fedora Desktop default:
+# sudo dnf group install -y c-development container-management development-tools domain-client editors rpm-development-tools
+#
+# Fedora Server only:
+# sudo dnf group install -y headless-management
+#
+# AI agent CLI reference:
+# Run after NVM/Node is installed.
+#
+# npm install -g @google/gemini-cli
+# npm install -g @openai/codex
+# gh extension install github/gh-copilot
+#
+# K9s reference:
+# https://github.com/derailed/k9s/releases
 
 # --- 1. ENGINE: CONFIGURATION & LOGGING ---
 DRY_RUN=false
 SERVER_MODE=false
+# Check latest NVM release: https://github.com/nvm-sh/nvm/releases
+NVM_VERSION="v0.40.3"
+OS_ID=""
+OS_NAME=""
+OS_LIKE=""
+OS_CODENAME=""
+PKG_MGR=""
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 CYAN='\033[0;36m'
+RED='\033[0;31m'
 NC='\033[0m'
 
 info() { echo -e "${GREEN}[INFO]${NC} $*"; }
 warn() { echo -e "${YELLOW}[WARN]${NC} $*"; }
-error() { echo -e "\033[0;31m[ERROR]\033[0m $*" >&2; }
+error() { echo -e "${RED}[ERROR]${NC} $*" >&2; }
 
 execute() {
     if [[ "$DRY_RUN" == "true" ]]; then
@@ -46,8 +73,10 @@ detect_os() {
     if [[ -f /etc/os-release ]]; then
         . /etc/os-release
         OS_ID="$ID"
+        OS_NAME="$NAME"
         OS_LIKE="${ID_LIKE:-$ID}"
-        info "Detected OS: $NAME ($OS_ID)"
+        OS_CODENAME="${VERSION_CODENAME:-}"
+        info "Detected OS: $OS_NAME ($OS_ID)"
     else
         error "Cannot detect OS. /etc/os-release missing."
         exit 1
@@ -55,43 +84,11 @@ detect_os() {
 
     if command -v apt >/dev/null 2>&1; then
         PKG_MGR="apt"
-        INSTALL_CMD="sudo apt install -y"
-        UPDATE_CMD="sudo apt update"
     elif command -v dnf >/dev/null 2>&1; then
         PKG_MGR="dnf"
-        INSTALL_CMD="sudo dnf install -y"
-        UPDATE_CMD="sudo dnf check-update || true"
     else
         error "Unsupported package manager (need apt or dnf)."
         exit 1
-    fi
-}
-
-pkg_install() {
-    local tool=$1
-    local pkg_name=$tool
-    
-    # 1. Map Package Names (where package != tool name)
-    case "$tool" in
-        fd) pkg_name="fd-find" ;;
-        go) [[ "$PKG_MGR" == "apt" ]] && pkg_name="golang-go" || pkg_name="golang" ;;
-    esac
-
-    # 2. Smart Binary Check (handles Ubuntu-specific suffixes like 'fdfind' or 'batcat')
-    local is_installed=false
-    if command -v "$tool" >/dev/null 2>&1; then
-        is_installed=true
-    elif [[ "$tool" == "fd" ]] && command -v "fdfind" >/dev/null 2>&1; then
-        is_installed=true
-    elif [[ "$tool" == "bat" ]] && command -v "batcat" >/dev/null 2>&1; then
-        is_installed=true
-    fi
-
-    if [[ "$is_installed" == "false" ]]; then
-        info "Installing $tool..."
-        execute "$INSTALL_CMD $pkg_name"
-    else
-        info "✔️ $tool already installed"
     fi
 }
 
@@ -101,10 +98,15 @@ setup_repos() {
     if [[ "$PKG_MGR" == "apt" ]]; then
         execute "sudo apt update && sudo apt install -y ca-certificates curl gnupg"
         execute "sudo mkdir -p /etc/apt/keyrings"
+
+        if [[ -z "$OS_CODENAME" ]]; then
+            error "Cannot determine Ubuntu/Debian codename from /etc/os-release."
+            exit 1
+        fi
         
         # Docker: Modern Signed-By approach
         execute "curl -fsSL https://download.docker.com/linux/$OS_ID/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg --yes"
-        execute "echo \"deb [arch=\$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/$OS_ID \$(lsb_release -cs) stable\" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null"
+        execute "echo \"deb [arch=\$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/$OS_ID $OS_CODENAME stable\" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null"
         
         # GitHub CLI: Modern Signed-By approach
         execute "curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo gpg --dearmor -o /etc/apt/keyrings/githubcli-archive-keyring.gpg --yes"
@@ -112,9 +114,6 @@ setup_repos() {
         
         execute "sudo apt update"
     elif [[ "$PKG_MGR" == "dnf" ]]; then
-        # Docker (Direct download is the most resilient for DNF4/DNF5)
-        execute "sudo curl -fsSL https://download.docker.com/linux/fedora/docker-ce.repo -o /etc/yum.repos.d/docker-ce.repo"
-        
         # GitHub CLI (Direct download for DNF5/Fedora 43 compatibility)
         execute "sudo curl -fsSL https://cli.github.com/packages/rpm/gh-cli.repo -o /etc/yum.repos.d/gh-cli.repo"
 
@@ -133,12 +132,18 @@ EOF"
 
 # --- 4. MODULES: TOOL INSTALLERS ---
 install_shell_tools() {
-    info "Installing modern shell utilities..."
-    local tools=(jq ripgrep bat btop direnv gh stow)
-    for t in "${tools[@]}"; do pkg_install "$t"; done
-
     if [[ "$SERVER_MODE" == "false" ]]; then
-        pkg_install "zsh"
+        info "Installing desktop shell..."
+        if ! command -v zsh >/dev/null 2>&1; then
+            if [[ "$PKG_MGR" == "apt" ]]; then
+                execute "sudo apt install -y zsh"
+            elif [[ "$PKG_MGR" == "dnf" ]]; then
+                execute "sudo dnf install -y zsh"
+            fi
+        else
+            info "Zsh already installed"
+        fi
+
         # Oh My Zsh
         if [[ ! -d "$HOME/.oh-my-zsh" ]]; then
             info "Installing Oh My Zsh..."
@@ -155,59 +160,44 @@ install_shell_tools() {
     fi
 }
 
-# install_runtimes() {
-#     # Nix
-#     if ! command -v nix >/dev/null 2>&1; then
-#         info "Installing Nix..."
-#         execute "curl -L https://nixos.org/nix/install | sh -s -- --daemon"
-#     fi
-#     # NVM (Dynamic Version Lookup)
-#     if [[ ! -d "$HOME/.nvm" ]]; then
-#         info "Fetching latest NVM version..."
-#         local latest_nvm="v0.39.7" # Default fallback
-#         if command -v jq >/dev/null 2>&1 && [[ "$DRY_RUN" == "false" ]]; then
-#             latest_nvm=$(curl -s https://api.github.com/repos/nvm-sh/nvm/releases/latest | jq -r .tag_name)
-#         fi
-#         info "Installing NVM $latest_nvm..."
-#         execute "curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/$latest_nvm/install.sh | bash"
-        
-#         # Automate Node LTS and Gemini CLI
-#         info "Installing Node.js LTS and Gemini CLI..."
-#         execute "source \$HOME/.nvm/nvm.sh && nvm install --lts && npm install -g @google/gemini-cli"
-#     fi
-    
-#     # OpenTofu (Official Multi-OS Installer)
-#     if ! command -v tofu >/dev/null 2>&1; then
-#         info "Installing OpenTofu..."
-#         execute "curl --proto '=https' --tlsv1.2 -fsSL https://get.opentofu.org/install-opentofu.sh | sh -s -- --install-method standalone"
-#     fi
+install_runtimes() {
+    info "Installing desktop runtimes..."
 
-#     # Go (Native Package)
-#     pkg_install "go"
+    if [[ "$PKG_MGR" == "dnf" ]]; then
+        execute "sudo dnf install -y golang rust cargo"
+    elif [[ "$PKG_MGR" == "apt" ]]; then
+        execute "sudo apt install -y golang-go rustc cargo"
+    fi
 
-#     # FUTURE ROADMAP: Placeholder for Rust
-#     # info "For Go (Golang): https://go.dev/doc/install"
-#     # info "For Rust (rustup): curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh"
-# }
+    if [[ ! -d "$HOME/.nvm" ]]; then
+        info "Installing NVM..."
+        execute "curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/$NVM_VERSION/install.sh | bash"
+    else
+        info "NVM already installed"
+    fi
+}
 
 install_containers() {
-    info "Installing Docker suite..."
     if [[ "$PKG_MGR" == "apt" ]]; then
+        info "Installing Docker suite..."
         execute "sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin"
-    else
-        execute "sudo dnf install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin"
-        # Only enable/start if systemd is active (avoids errors in Docker containers)
-        # Check if PID 1 is systemd without relying on the 'ps' command
-        if [[ -f /proc/1/comm ]] && [[ "$(cat /proc/1/comm)" == "systemd" ]]; then
-            execute "sudo systemctl enable --now docker"
-        fi
+    elif [[ "$PKG_MGR" == "dnf" ]]; then
+        info "Skipping Docker installation on Fedora."
+        return
     fi
+
+    # Only enable/start if systemd is active (avoids errors in Docker containers)
+    # Check if PID 1 is systemd without relying on the 'ps' command
+    if [[ -f /proc/1/comm ]] && [[ "$(cat /proc/1/comm)" == "systemd" ]]; then
+        execute "sudo systemctl enable --now docker"
+    fi
+
     warn "Adding $USER to docker group..."
     execute "sudo usermod -aG docker $USER"
 }
 
 install_k8s() {
-    info "Installing Kubernetes stack (K3s, K9s, Helm)..."
+    info "Installing Kubernetes stack (K3s, Helm)..."
     # K3s (Self-updating installer)
     if ! command -v k3s >/dev/null 2>&1; then
         execute "curl -sfL https://get.k3s.io | sh -"
@@ -216,28 +206,16 @@ install_k8s() {
     if ! command -v helm >/dev/null 2>&1; then
         execute "curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash"
     fi
-    # K9s (Dynamic Binary Fetch)
-    if ! command -v k9s >/dev/null 2>&1; then
-        info "Fetching latest K9s binary..."
-        local k9s_url="https://github.com/derailed/k9s/releases/latest/download/k9s_Linux_amd64.tar.gz" # Default fallback
-        if command -v jq >/dev/null 2>&1 && [[ "$DRY_RUN" == "false" ]]; then
-            k9s_url=$(curl -s https://api.github.com/repos/derailed/k9s/releases/latest | jq -r '.assets[] | select(.name | contains("Linux_amd64.tar.gz")) | .browser_download_url')
-        fi
-        execute "curl -L $k9s_url | tar xz && sudo mv k9s /usr/local/bin/ && rm LICENSE README.md"
-    fi
-}
-
-install_ai_extensions() {
-    info "Installing GitHub Copilot CLI extension..."
-    # Note: Requires gh auth login to be functional
-    if command -v gh >/dev/null 2>&1; then
-        execute "gh extension install github/gh-copilot || true"
-    fi
 }
 
 # --- 5. FINALIZATION ---
 setup_symlinks() {
     info "Symlinking dotfiles with GNU Stow..."
+
+    if ! command -v stow >/dev/null 2>&1; then
+        warn "GNU Stow is not installed. Skipping dotfile symlinks."
+        return
+    fi
     
     # Stow fails if the target exists and is not a symlink.
     # We backup existing regular files to ensure a clean Stow operation.
@@ -251,7 +229,7 @@ setup_symlinks() {
     # -R (restow): Prunes obsolete links and creates new ones.
     # -t (target): Directs symlinks to the home directory.
     # --ignore: Prevents metadata and scripts from being symlinked.
-    execute "stow -R -t \"$HOME\" --ignore='setup.sh|README.md' ."
+    execute "stow -R -t \"$HOME\" --ignore='setup.sh|README.md|LICENSE|.codex' ."
 }
 
 # --- 6. MAIN ORCHESTRATION ---
@@ -270,11 +248,16 @@ main() {
     detect_os
     setup_repos
     install_shell_tools
-    # install_runtimes
+    install_runtimes
     install_containers
     install_k8s
-    install_ai_extensions
     setup_symlinks
+
+    if [[ "$DRY_RUN" == "true" ]]; then
+        echo -e "\n${GREEN}Dry run completed successfully.${NC}"
+        info "No packages, repositories, services, or dotfiles were changed."
+        return
+    fi
 
     echo -e "\n${GREEN}🎉 Installation is completed!${NC}"
     info "---------------------------------"
@@ -288,7 +271,6 @@ main() {
     info "📝 Next Steps:"
     info "  ✔️ Run: 'reload-shell' to apply changes"
     info "  ✔️ Run: 'gh auth login' to enable GitHub Copilot"
-    info "  ✔️ Run: 'k9s' to manage your K3s cluster"
 }
 
 main "$@"

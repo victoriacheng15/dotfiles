@@ -18,14 +18,13 @@ cd ~/dotfiles
 
 **Core:**
 
-- Build tools (build-essential/development-tools)
 - Zsh + Oh My Zsh (auto-switches from bash)
-- Nix, NVM
+- Go, Rust/Cargo, NVM
 
 **Dev Tools:**
 
-- GitHub CLI, jq, ripgrep, fd-find
-- Docker + Docker Compose
+- Docker + Docker Compose on Ubuntu/Debian only
+- K3s, Helm
 
 **Optional (prompts):**
 
@@ -43,12 +42,9 @@ cd ~/dotfiles
 # Restart terminal or
 source ~/.zshrc
 
-# Add to docker group
+# Ubuntu/Debian only: activate docker group membership
 sudo usermod -aG docker $USER
 newgrp docker
-
-# Install Node
-nvm install --lts
 ```
 
 ## Useful Aliases
@@ -73,5 +69,6 @@ nvm install --lts
 ## Notes
 
 - Supports Ubuntu 22.04/24.04 LTS and Fedora 40+
+- Fedora setup intentionally skips Docker installation
 - Idempotent - safe to run multiple times
 - All functions organized by category with comment headers
