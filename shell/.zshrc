@@ -134,7 +134,7 @@ fi
 alias dev='cd $HOME/software'
 alias home='cd ~'
 alias ls='ls --color=auto -la'               # List all files in long format
-alias ll='ls -lh'               # List files with human-readable sizes
+alias ll='ls -lah'               # List files with human-readable sizes
 alias la='ls -A'                # List all files except . and ..
 alias l='ls -CF'                # List files in columns
 # Docker Shortcuts
@@ -143,6 +143,7 @@ alias dc='docker compose'
 alias dps='docker ps'
 alias dim='docker images'
 alias dlog='docker logs -f'
+alias docker=podman
 # misc
 alias dls='cp image_outputs/* /mnt/c/Users/$USER/Downloads/'
 
@@ -161,38 +162,6 @@ ignore_files() {
 
   npx gitignore "$@"
   echo "✅ .gitignore generated for: $*"
-}
-
-gstat() {
-    local BASE_DIR="$HOME/software"
-
-    echo "---------------------------------"
-    echo "  Global Git Status Scanner"
-    echo "  Source: $BASE_DIR"
-    echo "---------------------------------"
-
-    # Iterate through all subdirectories in BASE_DIR
-    for repo in "$BASE_DIR"/*; do
-        # Only process if it is a directory
-        if [ -d "$repo" ]; then
-            local name=$(basename "$repo")
-            
-            # Check if it's a git repo
-            if [ ! -d "$repo/.git" ]; then
-                 # Optional: Uncomment to see non-git folders
-                 continue
-            fi
-
-            # Check for uncommitted changes
-            # --porcelain returns empty string if clean
-            if [ -n "$(git -C "$repo" status --porcelain)" ]; then
-                printf "%-25s ❌ Dirty\n" "$name"
-            else
-                printf "%-25s ✅ Clean\n" "$name"
-            fi
-        fi
-    done
-    echo "---------------------------------"
 }
 
 # GitHub PR Helper: Creates or updates a PR based on commit.md
@@ -271,45 +240,11 @@ update_issue() {
     gh issue edit "$issue_no" --repo "$repo" --body-file "$file_path"
 }
 
-# Method 3: Create a new LinkedIn-only issue
-# Usage: create_linkedin_issue <file_path>
-create_linkedin_issue() {
-  local file="$1"
-  local labels="ln-only"
-
-  if [ -z "$file" ]; then
-    echo "Usage: $0 <path-to-markdown-file>"
-    exit 1
-  fi
-
-  if [ ! -f "$file" ]; then
-    echo "Error: File '$file' not found."
-    exit 1
-  fi
-
-  # Extract title from the first line: "🌊🌊🌊 - [Title]"
-  # Removes "🌊🌊🌊 - " prefix
-  local title
-  title=$(head -n 1 "$file" | sed 's/^🌊🌊🌊 - //')
-
-  if [ -z "$title" ]; then
-      echo "Error: Could not extract title from the first line of $file"
-      exit 1
-  fi
-
-  echo "Creating LinkedIn Only issue..."
-  echo "Title: $title"
-  echo "File:  $file"
-
-  gh issue create \
-    --repo victoriacheng15/blog-drafts \
-    --title "$title" \
-    --body-file "$file" \
-    --label "$labels"
-}
-
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 
 export KUBECONFIG=~/.kube/config
+
+export WASMTIME_HOME="$HOME/.wasmtime"
+export PATH="$WASMTIME_HOME/bin:$PATH"
