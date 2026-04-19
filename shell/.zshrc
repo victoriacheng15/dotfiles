@@ -146,6 +146,7 @@ alias dlog='docker logs -f'
 alias docker=podman
 # misc
 alias dls='cp image_outputs/* /mnt/c/Users/$USER/Downloads/'
+alias k='kubectl'
 
 ignore_files() {
   if [[ "$1" == "-h" || "$1" == "--help" ]]; then
