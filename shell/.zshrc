@@ -148,6 +148,7 @@ alias docker=podman
 alias dls='cp image_outputs/* /mnt/c/Users/$USER/Downloads/'
 alias k='kubectl'
 
+
 ignore_files() {
   if [[ "$1" == "-h" || "$1" == "--help" ]]; then
     echo "📄 Supported .gitignore types:"
@@ -239,6 +240,79 @@ update_issue() {
 
     echo "Updating issue #$issue_no in $repo from $file_path..."
     gh issue edit "$issue_no" --repo "$repo" --body-file "$file_path"
+}
+
+# Method 3: Create blog draft issue from a markdown file
+# Usage: create_blog_issue <file_path>
+create_blog_issue() {
+    local repo="victoriacheng15/blog-drafts"
+    local file_path=$1
+    local title
+    local milestone
+
+    if [[ -z "$file_path" ]]; then
+        echo "Usage: create_blog_issue <file_path>"
+        return 1
+    fi
+
+    if [[ ! -f "$file_path" ]]; then
+        echo "Error: File $file_path not found."
+        return 1
+    fi
+
+    milestone="Blog $(date +%Y)"
+    title=$(grep -m 1 "^title:" "$file_path" | sed 's/^title: *//; s/^"//; s/"$//')
+
+    if [[ -z "$title" ]]; then
+        echo "Error: Could not extract title from frontmatter in $file_path"
+        return 1
+    fi
+
+    echo "Creating blog issue..."
+    echo "Title: $title"
+    echo "File:  $file_path"
+
+    gh issue create \
+        --repo "$repo" \
+        --title "$title" \
+        --body-file "$file_path" \
+        --label "blog,draft" \
+        --milestone "$milestone"
+}
+
+# Method 4: Create LinkedIn-only issue from a markdown file
+# Usage: create_linkedin_issue <file_path>
+create_linkedin_issue() {
+    local repo="victoriacheng15/blog-drafts"
+    local file_path=$1
+    local title
+
+    if [[ -z "$file_path" ]]; then
+        echo "Usage: create_linkedin_issue <file_path>"
+        return 1
+    fi
+
+    if [[ ! -f "$file_path" ]]; then
+        echo "Error: File $file_path not found."
+        return 1
+    fi
+
+    title=$(head -n 1 "$file_path" | sed 's/^🌊🌊🌊 - //')
+
+    if [[ -z "$title" ]]; then
+        echo "Error: Could not extract title from the first line of $file_path"
+        return 1
+    fi
+
+    echo "Creating LinkedIn-only issue..."
+    echo "Title: $title"
+    echo "File:  $file_path"
+
+    gh issue create \
+        --repo "$repo" \
+        --title "$title" \
+        --body-file "$file_path" \
+        --label "ln-only"
 }
 
 export NVM_DIR="$HOME/.nvm"
