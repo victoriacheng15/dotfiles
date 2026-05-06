@@ -1,6 +1,6 @@
 # Dotfiles
 
-Personal dotfiles and dev environment setup for Ubuntu/Fedora.
+Personal dotfiles and dev environment setup for Ubuntu/Debian and Fedora.
 
 ## Quick Start
 
@@ -10,9 +10,19 @@ git clone git@github.com:victoriacheng15/dotfiles.git
 
 ```bash
 cd ~/dotfiles
-./setup.sh              # Normal run
-./setup.sh --dry-run    # Preview without changes
+
+# Ubuntu/Debian
+bash setup-ubuntu.sh
+bash setup-ubuntu.sh --dry-run
+bash setup-ubuntu.sh --server
+
+# Fedora
+bash setup-fedora.sh
+bash setup-fedora.sh --dry-run
+bash setup-fedora.sh --server
 ```
+
+`--server` skips Zsh and desktop shell setup. `--dry-run` prints the commands that would run without changing packages, repositories, services, or dotfiles.
 
 ## What Gets Installed
 
@@ -20,20 +30,16 @@ cd ~/dotfiles
 
 - Zsh + Oh My Zsh (auto-switches from bash)
 - Go, Rust/Cargo, NVM
+- GitHub CLI
+- Azure CLI
 
 **Dev Tools:**
 
 - Docker + Docker Compose on Ubuntu/Debian only
 - K3s, Helm
 
-**Optional (prompts):**
-
-- Azure CLI
-- Cockpit (server management)
-
 **Config:**
 
-- SSH key generation
 - Symlinks .zshrc and .gitconfig
 
 ## After Setup
@@ -42,9 +48,23 @@ cd ~/dotfiles
 # Restart terminal or
 source ~/.zshrc
 
-# Ubuntu/Debian only: activate docker group membership
-sudo usermod -aG docker $USER
+# Ubuntu/Debian only: activate Docker group membership
 newgrp docker
+
+# GitHub CLI
+gh auth login
+```
+
+Fedora uses Podman by default and this setup intentionally skips Docker installation.
+
+## Testing In Isolation
+
+```bash
+# Ubuntu
+docker run -it --rm -v "$(pwd):/root/dotfiles" -w /root/dotfiles ubuntu:22.04 bash -c "apt update && apt install -y sudo && bash setup-ubuntu.sh"
+
+# Fedora
+podman run -it --rm -v "$(pwd):/root/dotfiles:Z" -w /root/dotfiles fedora:39 bash -c "dnf install -y sudo && bash setup-fedora.sh"
 ```
 
 ## Useful Aliases
@@ -57,11 +77,9 @@ newgrp docker
 ## Debugging
 
 ```bash
-# Skip system update - comment out in main():
-# update_system
-
 # Dry run
-./setup.sh --dry-run
+bash setup-ubuntu.sh --dry-run
+bash setup-fedora.sh --dry-run
 
 # Skip specific installs - comment out in main()
 ```
@@ -71,4 +89,4 @@ newgrp docker
 - Supports Ubuntu 22.04/24.04 LTS and Fedora 40+
 - Fedora setup intentionally skips Docker installation
 - Idempotent - safe to run multiple times
-- All functions organized by category with comment headers
+- `setup.sh` is the original combined script; prefer the OS-specific scripts for new installs
