@@ -70,7 +70,7 @@ ZSH_THEME="refined"
 # Custom plugins may be added to $ZSH_CUSTOM/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-plugins=(git ansible python)
+plugins=(git python kubectl)
 
 source $ZSH/oh-my-zsh.sh
 
@@ -147,7 +147,6 @@ alias docker=podman
 # misc
 alias dls='cp image_outputs/* /mnt/c/Users/$USER/Downloads/'
 alias k='kubectl'
-
 
 ignore_files() {
   if [[ "$1" == "-h" || "$1" == "--help" ]]; then
@@ -323,3 +322,6 @@ export KUBECONFIG=~/.kube/config
 
 export WASMTIME_HOME="$HOME/.wasmtime"
 export PATH="$WASMTIME_HOME/bin:$PATH"
+
+# Added by Antigravity CLI installer
+export PATH="/var/home/victoriac/.local/bin:$PATH"
