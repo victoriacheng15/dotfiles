@@ -2,11 +2,22 @@
 
 Personal dotfiles and dev environment setup for Ubuntu/Debian and Fedora.
 
-## Quick Start
+### Packages to Install / Dev Stack
+- [Zsh](https://www.zsh.org)
+- [Oh My Zsh](https://ohmyz.sh)
+- Go
+- Python
+- NVM
+- Rust
+- [K3s](https://k3s.io)
+- [Helm](https://helm.sh)
+- [K9s](https://github.com/derailed/k9s)
+- [AWS CLI](https://aws.amazon.com/cli/)
+- [Azure CLI](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli)
 
-```bash
-git clone git@github.com:victoriacheng15/dotfiles.git
-```
+*Note: Check the [Fedora Developer Portal](https://developer.fedoraproject.org/) for installing development packages on Fedora.*
+
+## Setup
 
 ```bash
 cd ~/dotfiles
