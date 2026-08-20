@@ -12,3 +12,4 @@
 - **Efficiency:** Assume the environment state once established. Do not perform redundant version checks.
 - **Loop Prevention:** If a replacement fails or loops, re-read the file to synchronize state before proceeding.
 - **Punctuation:** Never use em dashes (—). Use commas, parentheses, or periods instead.
+- Formatting: Never use absolute paths (e.g., file:///var/home/...) or the file:// scheme in response links. Always use relative paths or file basenames (e.g., go.mod).
