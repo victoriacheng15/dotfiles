@@ -173,8 +173,8 @@ setup_dotfiles() {
 
     # Enable sparse-checkout to keep home directory clean
     info "Configuring sparse-checkout to keep home directory clean..."
-    execute "git --git-dir=\"$dot_dir\" --work-tree=\"$HOME\" sparse-checkout init --cone"
-    execute "git --git-dir=\"$dot_dir\" --work-tree=\"$HOME\" sparse-checkout set .zshrc .gitconfig .gemini"
+    execute "git --git-dir=\"$dot_dir\" --work-tree=\"$HOME\" sparse-checkout init --no-cone"
+    execute "(cd \"\$HOME\" && git --git-dir=\"$dot_dir\" --work-tree=\"\$HOME\" sparse-checkout set \"/.zshrc\" \"/.gitconfig\" \"/.gemini\")"
 
     # Backup existing non-symlink config files if they differ
     for f in .zshrc .gitconfig; do
