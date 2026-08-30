@@ -190,7 +190,33 @@ install_devops_tools() {
 setup_dotfiles() {
     info "Setting up Git bare repository for dotfiles..."
 
+    # Configure local Git credentials (ignored by main repository)
+    local local_gitconfig="$HOME/.gitconfig.local"
+    if [[ ! -f "$local_gitconfig" ]]; then
+        if [[ "$DRY_RUN" == "true" ]]; then
+            info "[DRY-RUN] Would configure local Git credentials in $local_gitconfig"
+        elif [ -t 0 ]; then
+            info "Setting up local Git credentials (these will not be pushed to GitHub)..."
+            read -p "Enter your Git commit name (e.g. John Doe): " git_name
+            read -p "Enter your Git commit email (e.g. john@example.com): " git_email
+            cat <<EOF > "$local_gitconfig"
+[user]
+    name = $git_name
+    email = $git_email
+EOF
+            info "Created $local_gitconfig successfully."
+        else
+            warn "Non-interactive shell. Creating empty $local_gitconfig. Configure it manually later."
+            cat <<EOF > "$local_gitconfig"
+[user]
+    name = your_name
+    email = your_email
+EOF
+        fi
+    fi
+
     local dot_dir="$HOME/.dotfiles"
+
 
     if [[ ! -d "$dot_dir" ]]; then
         info "Initializing bare repository at $dot_dir..."
