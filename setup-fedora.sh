@@ -27,8 +27,9 @@ execute() {
 
 info "Setting up Fedora repositories..."
 execute "sudo curl -fsSL https://cli.github.com/packages/rpm/gh-cli.repo -o /etc/yum.repos.d/gh-cli.repo"
-execute "sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc"
-execute "sudo tee /etc/yum.repos.d/azure-cli.repo <<EOF
+if [[ "$SERVER_MODE" != "true" ]]; then
+    execute "sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc"
+    execute "sudo tee /etc/yum.repos.d/azure-cli.repo <<EOF
 [azure-cli]
 name=Azure CLI
 baseurl=https://packages.microsoft.com/yumrepos/azure-cli
@@ -36,6 +37,11 @@ enabled=1
 gpgcheck=1
 gpgkey=https://packages.microsoft.com/keys/microsoft.asc
 EOF"
+fi
 
 info "Installing Fedora packages..."
-execute "sudo dnf install -y zsh golang rust cargo gh azure-cli yq"
+if [[ "$SERVER_MODE" == "true" ]]; then
+    execute "sudo dnf install -y zsh golang rust cargo gh yq"
+else
+    execute "sudo dnf install -y zsh golang rust cargo gh azure-cli yq"
+fi

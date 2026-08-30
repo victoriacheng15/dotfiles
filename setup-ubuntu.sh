@@ -45,7 +45,11 @@ execute "echo \"deb [arch=\$(dpkg --print-architecture) signed-by=/etc/apt/keyri
 execute "sudo apt update"
 
 info "Installing Ubuntu packages..."
-execute "sudo apt install -y zsh golang-go rustc cargo gh azure-cli jq docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin"
+if [[ "$SERVER_MODE" == "true" ]]; then
+    execute "sudo apt install -y zsh golang-go rustc cargo gh jq docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin"
+else
+    execute "sudo apt install -y zsh golang-go rustc cargo gh azure-cli jq docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin"
+fi
 
 # Configure Docker service
 if [[ -f /proc/1/comm ]] && [[ "$(cat /proc/1/comm)" == "systemd" ]]; then

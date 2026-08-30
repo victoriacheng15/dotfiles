@@ -120,8 +120,12 @@ install_runtimes() {
 install_k8s() {
     info "Installing Kubernetes stack (K3s, Helm)..."
     # K3s
-    if ! command -v k3s >/dev/null 2>&1; then
-        execute "curl -sfL https://get.k3s.io | sh -"
+    if [[ "$SERVER_MODE" == "true" ]]; then
+        info "Skipping local K3s installation (Server Mode)"
+    else
+        if ! command -v k3s >/dev/null 2>&1; then
+            execute "curl -sfL https://get.k3s.io | sh -"
+        fi
     fi
     # Helm
     if ! command -v helm >/dev/null 2>&1; then
@@ -151,19 +155,23 @@ install_devops_tools() {
     fi
 
     # Install K9s
-    if ! command -v k9s >/dev/null 2>&1; then
-        local k9s_dir="$HOME/.local/bin"
-        execute "mkdir -p \"$k9s_dir\""
-        local latest_ver
-        latest_ver=$(curl -s https://api.github.com/repos/derailed/k9s/releases/latest | grep tag_name | cut -d '"' -f 4)
-        info "Downloading K9s $latest_ver..."
-        execute "curl -fsSL -o /tmp/k9s.tar.gz \"https://github.com/derailed/k9s/releases/download/${latest_ver}/k9s_Linux_amd64.tar.gz\""
-        execute "tar -xzf /tmp/k9s.tar.gz -C /tmp"
-        execute "mv /tmp/k9s \"$k9s_dir/k9s\""
-        execute "chmod +x \"$k9s_dir/k9s\""
-        execute "rm -f /tmp/k9s.tar.gz"
+    if [[ "$SERVER_MODE" == "true" ]]; then
+        info "Skipping K9s installation (Server Mode)"
     else
-        info "K9s already installed"
+        if ! command -v k9s >/dev/null 2>&1; then
+            local k9s_dir="$HOME/.local/bin"
+            execute "mkdir -p \"$k9s_dir\""
+            local latest_ver
+            latest_ver=$(curl -s https://api.github.com/repos/derailed/k9s/releases/latest | grep tag_name | cut -d '"' -f 4)
+            info "Downloading K9s $latest_ver..."
+            execute "curl -fsSL -o /tmp/k9s.tar.gz \"https://github.com/derailed/k9s/releases/download/${latest_ver}/k9s_Linux_amd64.tar.gz\""
+            execute "tar -xzf /tmp/k9s.tar.gz -C /tmp"
+            execute "mv /tmp/k9s \"$k9s_dir/k9s\""
+            execute "chmod +x \"$k9s_dir/k9s\""
+            execute "rm -f /tmp/k9s.tar.gz"
+        else
+            info "K9s already installed"
+        fi
     fi
 
     # Install yq (on Ubuntu if not installed, Fedora helper installs it via DNF)
