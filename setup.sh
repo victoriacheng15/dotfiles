@@ -88,10 +88,7 @@ run_os_setup() {
 
 # --- 4. INSTALL COMMON SHELL TOOLS (OH MY ZSH & BASH SWITCH) ---
 install_shell_tools() {
-    if [[ "$SERVER_MODE" == "true" ]]; then
-        info "Skipping Zsh shell setup (Server Mode)"
-        return
-    fi
+
 
     # Oh My Zsh
     if [[ ! -d "$HOME/.oh-my-zsh" ]]; then

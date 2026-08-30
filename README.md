@@ -25,7 +25,7 @@ bash setup.sh --dry-run
 bash setup.sh --server
 ```
 
-`--server` skips Zsh and desktop shell setup. `--dry-run` prints the commands that would run without changing packages, repositories, services, or dotfiles.
+`--server` skips Azure CLI, K3s (Kubernetes), and K9s to keep the server installation lightweight. `--dry-run` prints the commands that would run without changing packages, repositories, services, or dotfiles.
 
 *(Note: `setup.sh` automatically detects your OS and delegates to `setup-ubuntu.sh` or `setup-fedora.sh` for OS-specific package installations.)*
 
