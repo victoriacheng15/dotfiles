@@ -153,14 +153,27 @@ install_k3s() {
     fi
 }
 
-setup_symlinks() {
-    info "Symlinking dotfiles with GNU Stow..."
+setup_dotfiles() {
+    info "Setting up Git bare repository for dotfiles..."
 
-    if ! command -v stow >/dev/null 2>&1; then
-        warn "GNU Stow is not installed. Skipping dotfile symlinks."
-        return
+    local dot_dir="$HOME/.dotfiles"
+
+    if [[ ! -d "$dot_dir" ]]; then
+        info "Initializing bare repository at $dot_dir..."
+        execute "git clone --bare . \"$dot_dir\""
+    else
+        info "Bare repository already exists at $dot_dir."
     fi
 
+    # Configure local bare repository
+    execute "git --git-dir=\"$dot_dir\" --work-tree=\"$HOME\" config --local status.showUntrackedFiles no"
+
+    # Enable sparse-checkout to keep home directory clean
+    info "Configuring sparse-checkout to keep home directory clean..."
+    execute "git --git-dir=\"$dot_dir\" --work-tree=\"$HOME\" sparse-checkout init --cone"
+    execute "git --git-dir=\"$dot_dir\" --work-tree=\"$HOME\" sparse-checkout set .zshrc .gitconfig .gemini"
+
+    # Backup existing non-symlink config files if they differ
     for f in .zshrc .gitconfig; do
         if [[ -f "$HOME/$f" && ! -L "$HOME/$f" ]]; then
             warn "Existing file $HOME/$f found. Backing up to $f.backup"
@@ -168,7 +181,9 @@ setup_symlinks() {
         fi
     done
 
-    execute "stow -R -t \"$HOME\" --ignore='setup.sh|setup-ubuntu.sh|setup-fedora.sh|README.md|LICENSE|.codex' ."
+    # Checkout the files into the home directory
+    info "Checking out dotfiles from bare repository..."
+    execute "git --git-dir=\"$dot_dir\" --work-tree=\"$HOME\" checkout -f"
 }
 
 print_verification() {
@@ -205,7 +220,7 @@ main() {
     install_runtimes
     install_containers
     install_k3s
-    setup_symlinks
+    setup_dotfiles
 
     if [[ "$DRY_RUN" == "true" ]]; then
         echo -e "\n${GREEN}Dry run completed successfully.${NC}"

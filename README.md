@@ -51,7 +51,7 @@ bash setup-fedora.sh --server
 
 **Config:**
 
-- Symlinks .zshrc and .gitconfig
+- Manages configuration files directly in the home directory via a Git bare repository (`~/.dotfiles`) and a custom `dot` alias.
 
 ## After Setup
 
@@ -67,6 +67,26 @@ gh auth login
 ```
 
 Fedora uses Podman by default and this setup intentionally skips Docker installation.
+
+## Management
+
+This repository uses the **Git Bare Repository** pattern to manage configurations without symlinks. Files are checked out directly into your `$HOME` directory and tracked via the `dot` command-line alias.
+
+To manage your dotfiles:
+
+```bash
+# Check the status of your dotfiles
+dot status
+
+# Add/track a config file
+dot add ~/.gitconfig
+
+# Commit your changes
+dot commit -m "Update gitconfig alias"
+
+# Push to your remote repository
+dot push origin main
+```
 
 ## Testing In Isolation
 
