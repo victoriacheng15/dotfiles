@@ -5,15 +5,12 @@ Personal dotfiles and dev environment setup for Ubuntu/Debian and Fedora.
 ### Packages to Install / Dev Stack
 - [Zsh](https://www.zsh.org)
 - [Oh My Zsh](https://ohmyz.sh)
-- Go
-- Python
-- NVM
-- Rust
-- [K3s](https://k3s.io)
-- [Helm](https://helm.sh)
+- Go, Python, Rust, NVM
+- [K3s](https://k3s.io) & [Helm](https://helm.sh)
 - [K9s](https://github.com/derailed/k9s)
-- [AWS CLI](https://aws.amazon.com/cli/)
-- [Azure CLI](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli)
+- [OpenTofu](https://opentofu.org)
+- [jq](https://jqlang.github.io/jq/) & [yq](https://github.com/mikefarah/yq)
+- [AWS CLI](https://aws.amazon.com/cli/) & [Azure CLI](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli)
 
 *Note: Check the [Fedora Developer Portal](https://developer.fedoraproject.org/) for installing development packages on Fedora.*
 
@@ -22,18 +19,15 @@ Personal dotfiles and dev environment setup for Ubuntu/Debian and Fedora.
 ```bash
 cd ~/dotfiles
 
-# Ubuntu/Debian
-bash setup-ubuntu.sh
-bash setup-ubuntu.sh --dry-run
-bash setup-ubuntu.sh --server
-
-# Fedora
-bash setup-fedora.sh
-bash setup-fedora.sh --dry-run
-bash setup-fedora.sh --server
+# Run the main unified setup script
+bash setup.sh
+bash setup.sh --dry-run
+bash setup.sh --server
 ```
 
 `--server` skips Zsh and desktop shell setup. `--dry-run` prints the commands that would run without changing packages, repositories, services, or dotfiles.
+
+*(Note: `setup.sh` automatically detects your OS and delegates to `setup-ubuntu.sh` or `setup-fedora.sh` for OS-specific package installations.)*
 
 ## What Gets Installed
 
@@ -44,10 +38,13 @@ bash setup-fedora.sh --server
 - GitHub CLI
 - Azure CLI
 
-**Dev Tools:**
+**Dev & DevOps Tools:**
 
 - Docker + Docker Compose on Ubuntu/Debian only
 - K3s, Helm
+- OpenTofu
+- K9s
+- jq, yq
 
 **Config:**
 
@@ -109,8 +106,7 @@ podman run -it --rm -v "$(pwd):/root/dotfiles:Z" -w /root/dotfiles fedora:39 bas
 
 ```bash
 # Dry run
-bash setup-ubuntu.sh --dry-run
-bash setup-fedora.sh --dry-run
+bash setup.sh --dry-run
 
 # Skip specific installs - comment out in main()
 ```
@@ -120,4 +116,4 @@ bash setup-fedora.sh --dry-run
 - Supports Ubuntu 22.04/24.04 LTS and Fedora 40+
 - Fedora setup intentionally skips Docker installation
 - Idempotent - safe to run multiple times
-- `setup.sh` is the original combined script; prefer the OS-specific scripts for new installs
+- `setup.sh` is the main orchestrator script; it automatically delegates OS-specific package installation to helper scripts.
