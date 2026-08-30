@@ -162,7 +162,10 @@ setup_dotfiles() {
         info "Initializing bare repository at $dot_dir..."
         execute "git clone --bare . \"$dot_dir\""
     else
-        info "Bare repository already exists at $dot_dir."
+        info "Bare repository already exists at $dot_dir. Updating configuration..."
+        # Update the bare repository from the current directory
+        execute "git --git-dir=\"$dot_dir\" remote set-url origin \".\" 2>/dev/null || true"
+        execute "git --git-dir=\"$dot_dir\" fetch origin main:main 2>/dev/null || true"
     fi
 
     # Configure local bare repository
