@@ -85,6 +85,28 @@ dot commit -m "Update gitconfig alias"
 dot push origin main
 ```
 
+### Syncing and Applying `.zshrc` Changes
+
+When updating `.zshrc`:
+
+1. **Sync repository changes to `$HOME`** (if edited within this cloned directory):
+   ```bash
+   cp .zshrc ~/.zshrc
+   ```
+
+2. **Reload your shell session** to apply updates immediately:
+   ```bash
+   reload-shell
+   # or
+   source ~/.zshrc
+   ```
+
+3. **Stage and commit the changes via `dot`**:
+   ```bash
+   dot add ~/.zshrc
+   dot commit -m "Update .zshrc"
+   ```
+
 ## Testing In Isolation
 
 ```bash

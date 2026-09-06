@@ -378,3 +378,19 @@ export PATH="$WASMTIME_HOME/bin:$PATH"
 
 # Added by Antigravity CLI installer
 export PATH="/var/home/victoriac/.local/bin:$PATH"
+
+eval "$(mise activate zsh)"
+
+# Detect Fedora Toolbox and configure single-line prompt
+TOOLBOX_PREFIX=""
+if [ -f /run/.containerenv ] && [ -f /run/.toolboxenv ]; then
+    TOOLBOX_NAME=$(sed -n 's/^name="\(.*\)"/\1/p' /run/.containerenv)
+    TOOLBOX_PREFIX="%F{purple}${TOOLBOX_NAME}%f - "
+fi
+
+precmd() {
+    vcs_info
+    unset cmd_timestamp
+}
+
+PROMPT="${TOOLBOX_PREFIX}\$(repo_information)%(?.%F{magenta}.%F{red})>%f "
