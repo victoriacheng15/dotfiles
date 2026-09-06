@@ -67,44 +67,56 @@ Fedora uses Podman by default and this setup intentionally skips Docker installa
 
 ## Management
 
-This repository uses the **Git Bare Repository** pattern to manage configurations without symlinks. Files are checked out directly into your `$HOME` directory and tracked via the `dot` command-line alias.
+You can manage configuration files (`.zshrc`, `.gitconfig`, `.gemini/`) using either of two workflows:
 
-To manage your dotfiles:
+### Method 1: Direct in `$HOME` (Bare Repo / `dot` Alias)
 
-```bash
-# Check the status of your dotfiles
-dot status
+Edit active configuration files directly in your home directory without intermediate copying.
 
-# Add/track a config file
-dot add ~/.gitconfig
-
-# Commit your changes
-dot commit -m "Update gitconfig alias"
-
-# Push to your remote repository
-dot push origin main
-```
-
-### Syncing and Applying `.zshrc` Changes
-
-When updating `.zshrc`:
-
-1. **Sync repository changes to `$HOME`** (if edited within this cloned directory):
+1. **Edit the target file:**
    ```bash
-   cp .zshrc ~/.zshrc
+   vim ~/.zshrc
+   # or edit ~/.gitconfig, ~/.gemini/
    ```
 
-2. **Reload your shell session** to apply updates immediately:
+2. **Reload shell (for `.zshrc`):**
    ```bash
    reload-shell
-   # or
-   source ~/.zshrc
+   # or: source ~/.zshrc
    ```
 
-3. **Stage and commit the changes via `dot`**:
+3. **Stage, commit, and push:**
    ```bash
+   dot status
    dot add ~/.zshrc
-   dot commit -m "Update .zshrc"
+   dot commit -m "Update zsh configuration"
+   dot push origin main
+   ```
+   *(Note: Ensure `dot remote set-url origin git@github.com:victoriacheng15/dotfiles.git` is set if pushing directly to GitHub).*
+
+### Method 2: In Cloned Repository (`dotfiles/`)
+
+Edit files inside this repository working directory, sync them to `$HOME`, and push using standard `git`.
+
+1. **Edit the file:**
+   ```bash
+   vim .zshrc
+   # or edit .gitconfig, .gemini/
+   ```
+
+2. **Sync to `$HOME` and reload:**
+   ```bash
+   cp .zshrc ~/.zshrc
+   # for .gitconfig: cp .gitconfig ~/.gitconfig
+   # for .gemini:    cp -r .gemini/ ~/.gemini/
+   reload-shell
+   ```
+
+3. **Stage, commit, and push:**
+   ```bash
+   git add .zshrc
+   git commit -m "Update zsh configuration"
+   git push origin main
    ```
 
 ## Testing In Isolation
