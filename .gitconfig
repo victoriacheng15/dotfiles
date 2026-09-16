@@ -17,3 +17,5 @@
     prune = true
 [help]
     autocorrect = 1
+[core]
+    excludesFile = ~/.gitignore_global

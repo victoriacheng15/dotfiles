@@ -5,9 +5,8 @@ Personal dotfiles and dev environment setup for Ubuntu/Debian and Fedora.
 ### Packages to Install / Dev Stack
 - [Zsh](https://www.zsh.org)
 - [Oh My Zsh](https://ohmyz.sh)
-- Go, Python, Rust, NVM
-- [K3s](https://k3s.io) & [Helm](https://helm.sh)
-- [K9s](https://github.com/derailed/k9s)
+- Go, Python, Rust
+- [Helm](https://helm.sh)
 - [OpenTofu](https://opentofu.org)
 - [jq](https://jqlang.github.io/jq/) & [yq](https://github.com/mikefarah/yq)
 - [AWS CLI](https://aws.amazon.com/cli/) & [Azure CLI](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli)
@@ -19,31 +18,30 @@ Personal dotfiles and dev environment setup for Ubuntu/Debian and Fedora.
 ```bash
 cd ~/dotfiles
 
-# Run the main unified setup script
-bash setup.sh
-bash setup.sh --dry-run
-bash setup.sh --server
+# Run setup for your OS:
+bash setup.sh --fedora
+# or: bash setup.sh --ubuntu
+
+# Preview execution:
+bash setup.sh --fedora --dry-run
 ```
 
-`--server` skips Azure CLI, K3s (Kubernetes), and K9s to keep the server installation lightweight. `--dry-run` prints the commands that would run without changing packages, repositories, services, or dotfiles.
-
-*(Note: `setup.sh` automatically detects your OS and delegates to `setup-ubuntu.sh` or `setup-fedora.sh` for OS-specific package installations.)*
+`--dry-run` prints the commands that would run without changing packages, repositories, services, or dotfiles. Specify `--fedora` or `--ubuntu` to set the target distribution.
 
 ## What Gets Installed
 
 **Core:**
 
 - Zsh + Oh My Zsh (auto-switches from bash)
-- Go, Rust/Cargo, NVM
+- Go, Rust/Cargo
 - GitHub CLI
 - Azure CLI
 
 **Dev & DevOps Tools:**
 
 - Docker + Docker Compose on Ubuntu/Debian only
-- K3s, Helm
+- Helm
 - OpenTofu
-- K9s
 - jq, yq
 
 **Config:**
@@ -123,10 +121,10 @@ Edit files inside this repository working directory, sync them to `$HOME`, and p
 
 ```bash
 # Ubuntu
-docker run -it --rm -v "$(pwd):/root/dotfiles" -w /root/dotfiles ubuntu:22.04 bash -c "apt update && apt install -y sudo && bash setup-ubuntu.sh"
+docker run -it --rm -v "$(pwd):/root/dotfiles" -w /root/dotfiles ubuntu:22.04 bash -c "apt update && apt install -y sudo && bash setup.sh"
 
 # Fedora
-podman run -it --rm -v "$(pwd):/root/dotfiles:Z" -w /root/dotfiles fedora:39 bash -c "dnf install -y sudo && bash setup-fedora.sh"
+podman run -it --rm -v "$(pwd):/root/dotfiles:Z" -w /root/dotfiles fedora:39 bash -c "dnf install -y sudo && bash setup.sh"
 ```
 
 ## Useful Aliases
@@ -150,4 +148,4 @@ bash setup.sh --dry-run
 - Supports Ubuntu 22.04/24.04 LTS and Fedora 40+
 - Fedora setup intentionally skips Docker installation
 - Idempotent - safe to run multiple times
-- `setup.sh` is the main orchestrator script; it automatically delegates OS-specific package installation to helper scripts.
+- `setup.sh` is the unified orchestrator script; it automatically detects your OS and installs missing packages.
