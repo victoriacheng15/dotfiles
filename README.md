@@ -18,15 +18,18 @@ Personal dotfiles and dev environment setup for Ubuntu/Debian and Fedora.
 ```bash
 cd ~/dotfiles
 
-# Run setup for your OS:
-bash setup.sh --fedora
-# or: bash setup.sh --ubuntu
+# Run setup (defaults to Fedora):
+bash setup.sh
+
+# Or specify target OS explicitly:
+bash setup.sh --os fedora
+# or: bash setup.sh --os ubuntu
 
 # Preview execution:
-bash setup.sh --fedora --dry-run
+bash setup.sh --dry-run
 ```
 
-`--dry-run` prints the commands that would run without changing packages, repositories, services, or dotfiles. Specify `--fedora` or `--ubuntu` to set the target distribution.
+`--dry-run` prints the commands that would run without changing packages, repositories, services, or dotfiles.
 
 ## What Gets Installed
 
@@ -54,14 +57,62 @@ bash setup.sh --fedora --dry-run
 # Restart terminal or
 source ~/.zshrc
 
-# Ubuntu/Debian only: activate Docker group membership
-newgrp docker
-
 # GitHub CLI
 gh auth login
 ```
 
 Fedora uses Podman by default and this setup intentionally skips Docker installation.
+
+## Fedora Atomic Desktop & Toolbox Setup
+
+Fedora Atomic Desktops (Silverblue, Kinoite, Sericea) feature an immutable root filesystem (`/`). Instead of package layering development tools onto the base system with `rpm-ostree`, development workflows run inside containerized environments using **Toolbox** (or Distrobox).
+
+### Shared Home Directory
+
+Your home directory (`/var/home/$USER`) is shared directly between the host and Toolbox containers. Any dotfiles configured here (`.zshrc`, `.p10k.zsh`, `.gitconfig`, `.gitignore_global`) are immediately active and shared across both the host and container environments.
+
+### Toolbox Environments
+
+#### 1. Cloud & Infra Container (`cloud-dev`)
+
+Dedicated container for Golang, Python, Kubernetes, and cloud infrastructure workflows. Managed entirely by [setup.sh](setup.sh):
+
+```bash
+# Create and enter container
+toolbox create -c cloud-dev
+toolbox enter cloud-dev
+
+# Run automated setup
+cd ~/dotfiles
+bash setup.sh
+```
+
+This installs all core runtime and cloud tooling (`golang`, `rust`, `helm`, `opentofu`, `awscli2`, `azure-cli`, `kubernetes-clients`, `jq`, `yq`) and initializes dotfiles. Python tooling and virtual environments are managed via [uv](https://docs.astral.sh/uv/).
+
+#### 2. Node.js Container (`node-dev`)
+
+Dedicated container for frontend and JavaScript ecosystems, managed via [mise](https://mise.jdx.dev/):
+
+```bash
+# Create and enter container
+toolbox create -c node-dev
+toolbox enter node-dev
+
+sudo dnf group install development-tools
+sudo dnf install gcc-c++
+
+# Install Node.js runtime and package managers via mise
+mise use -g node@lts
+mise use -g pnpm@latest
+```
+
+### Host-Level Applications
+
+Install graphical user applications (IDEs, browsers, terminals) on the immutable host via Flatpak:
+
+```bash
+flatpak install flathub com.visualstudio.code
+```
 
 ## Management
 
