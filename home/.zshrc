@@ -153,9 +153,7 @@ alias dim='docker images'
 alias dlog='docker logs -f'
 alias docker=podman
 # misc
-alias dls='cp image_outputs/* /mnt/c/Users/$USER/Downloads/'
 alias k='kubectl'
-alias dot="git --git-dir=\$HOME/.dotfiles --work-tree=\$HOME"
 
 ignore_files() {
   if [[ "$1" == "-h" || "$1" == "--help" ]]; then

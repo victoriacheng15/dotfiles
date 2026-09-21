@@ -12,6 +12,7 @@ TARGET_OS="fedora"
 
 # Centralized package definitions
 FEDORA_PACKAGES=(
+    stow
     zsh
     golang
     rust
@@ -131,55 +132,19 @@ install_shell_tools() {
     fi
 }
 
-# --- 4. GIT BARE REPOSITORY DOTFILES ---
-setup_dotfiles() {
-    info "Setting up Git bare repository for dotfiles..."
+# --- 4. DOTFILE SYMLINKS (GNU STOW) ---
+setup_symlinks() {
+    info "Symlinking dotfiles via GNU Stow..."
 
-    # Configure local Git credentials (ignored by main repository)
-    local local_gitconfig="$HOME/.gitconfig.local"
-    if [[ ! -f "$local_gitconfig" ]]; then
-        if [[ "$DRY_RUN" == "true" ]]; then
-            info "[DRY-RUN] Would configure local Git credentials in $local_gitconfig"
-        elif [ -t 0 ]; then
-            info "Setting up local Git credentials (these will not be pushed to GitHub)..."
-            read -p "Enter your Git commit name (e.g. John Doe): " git_name
-            read -p "Enter your Git commit email (e.g. john@example.com): " git_email
-            cat <<EOF > "$local_gitconfig"
-[user]
-    name = $git_name
-    email = $git_email
-EOF
-            info "Created $local_gitconfig successfully."
-        else
-            warn "Non-interactive shell. Creating empty $local_gitconfig. Configure it manually later."
-            cat <<EOF > "$local_gitconfig"
-[user]
-    name = your_name
-    email = your_email
-EOF
-        fi
+    local repo_dir
+    repo_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+    if ! command -v stow &>/dev/null; then
+        warn "GNU Stow is not installed. Skipping dotfile symlinks."
+        return
     fi
 
-    local dot_dir="$HOME/.dotfiles"
-
-    if [[ ! -d "$dot_dir" ]]; then
-        info "Initializing bare repository at $dot_dir..."
-        execute "git clone --bare . \"$dot_dir\""
-    else
-        info "Bare repository already exists at $dot_dir. Updating configuration..."
-        execute "git --git-dir=\"$dot_dir\" remote set-url origin \".\" 2>/dev/null || true"
-        execute "git --git-dir=\"$dot_dir\" fetch origin main:main 2>/dev/null || true"
-    fi
-
-    # Configure local bare repository
-    execute "git --git-dir=\"$dot_dir\" --work-tree=\"$HOME\" config --local status.showUntrackedFiles no"
-
-    # Enable sparse-checkout to keep home directory clean
-    info "Configuring sparse-checkout to keep home directory clean..."
-    execute "git --git-dir=\"$dot_dir\" --work-tree=\"$HOME\" sparse-checkout init --no-cone"
-    execute "(cd \"\$HOME\" && git --git-dir=\"$dot_dir\" --work-tree=\"\$HOME\" sparse-checkout set \"/.zshrc\" \"/.gitconfig\" \"/.gemini\" \"/.gitignore_global\" \"/.p10k.zsh\")"
-
-    # Backup existing non-symlink config files if they differ
+    # Backup any existing regular files that stow would conflict with
     for f in .zshrc .gitconfig .gitignore_global .p10k.zsh; do
         if [[ -f "$HOME/$f" && ! -L "$HOME/$f" ]]; then
             warn "Existing file $HOME/$f found. Backing up to $f.backup"
@@ -187,9 +152,10 @@ EOF
         fi
     done
 
-    # Checkout the files into the home directory
-    info "Checking out dotfiles from bare repository..."
-    execute "git --git-dir=\"$dot_dir\" --work-tree=\"$HOME\" checkout -f"
+    # -R (restow): prunes obsolete links before creating new ones
+    # -t: target directory for symlinks
+    # -d: source directory containing the stow package
+    execute "stow -R -t \"$HOME\" -d \"$repo_dir\" home"
 }
 
 # --- 5. MAIN ORCHESTRATION ---
@@ -224,7 +190,7 @@ main() {
 
     install_packages
     install_shell_tools
-    setup_dotfiles
+    setup_symlinks
 
     if [[ "$DRY_RUN" == "true" ]]; then
         echo -e "\n${GREEN}Dry run completed successfully.${NC}"

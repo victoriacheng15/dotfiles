@@ -16,17 +16,17 @@ Personal dotfiles and dev environment setup for Ubuntu/Debian and Fedora.
 ## Setup
 
 ```bash
-cd ~/dotfiles
+cd dotfiles/
 
 # Run setup (defaults to Fedora):
-bash setup.sh
+bash install.sh
 
 # Or specify target OS explicitly:
-bash setup.sh --os fedora
-# or: bash setup.sh --os ubuntu
+bash install.sh --os fedora
+# or: bash install.sh --os ubuntu
 
 # Preview execution:
-bash setup.sh --dry-run
+bash install.sh --dry-run
 ```
 
 `--dry-run` prints the commands that would run without changing packages, repositories, services, or dotfiles.
@@ -49,7 +49,7 @@ bash setup.sh --dry-run
 
 **Config:**
 
-- Manages configuration files directly in the home directory via a Git bare repository (`~/.dotfiles`) and a custom `dot` alias.
+- Symlinks configuration files into `$HOME` via [GNU Stow](https://www.gnu.org/software/stow/).
 
 ## After Setup
 
@@ -73,38 +73,29 @@ Your home directory (`/var/home/$USER`) is shared directly between the host and 
 
 ### Toolbox Environments
 
-#### 1. Cloud & Infra Container (`cloud-dev`)
-
-Dedicated container for Golang, Python, Kubernetes, and cloud infrastructure workflows. Managed entirely by [setup.sh](setup.sh):
+From the Atomic host, run [install-atomic.sh](install-atomic.sh) to create and provision both containers automatically:
 
 ```bash
-# Create and enter container
-toolbox create -c cloud-dev
-toolbox enter cloud-dev
+cd dotfiles/
 
-# Run automated setup
-cd ~/dotfiles
-bash setup.sh
+# Provision both containers
+bash install-atomic.sh
+
+# Or target a specific one
+bash install-atomic.sh --env=cloud
+bash install-atomic.sh --env=node
+
+# Preview without making changes
+bash install-atomic.sh --dry-run
 ```
 
-This installs all core runtime and cloud tooling (`golang`, `rust`, `helm`, `opentofu`, `awscli2`, `azure-cli`, `kubernetes-clients`, `jq`, `yq`) and initializes dotfiles. Python tooling and virtual environments are managed via [uv](https://docs.astral.sh/uv/).
+#### 1. Cloud & Infra Container (`cloud-dev`)
+
+Installs group packages (`c-development`, `development-tools`, `editors`), then individual tools: `golang`, `rust`, `cargo`, `gh`, `azure-cli`, `jq`, `yq`, `helm`, `opentofu`, `awscli2`, `kubernetes-clients`, and `stow`. Also installs Oh My Zsh and [uv](https://docs.astral.sh/uv/) for Python tooling.
 
 #### 2. Node.js Container (`node-dev`)
 
-Dedicated container for frontend and JavaScript ecosystems, managed via [mise](https://mise.jdx.dev/):
-
-```bash
-# Create and enter container
-toolbox create -c node-dev
-toolbox enter node-dev
-
-sudo dnf group install development-tools
-sudo dnf install gcc-c++
-
-# Install Node.js runtime and package managers via mise
-mise use -g node@lts
-mise use -g pnpm@latest
-```
+Installs `development-tools` group and `gcc-c++`, then sets up [mise](https://mise.jdx.dev/) with `node@lts` and `pnpm@latest`.
 
 ### Host-Level Applications
 
@@ -116,80 +107,33 @@ flatpak install flathub com.visualstudio.code
 
 ## Management
 
-You can manage configuration files (`.zshrc`, `.gitconfig`, `.gemini/`) using either of two workflows:
+Configuration files (`.zshrc`, `.gitconfig`, `.p10k.zsh`, `.gemini/`) are symlinked into `$HOME` from this repository using [GNU Stow](https://www.gnu.org/software/stow/). This means edits made directly in `$HOME` are edits to the tracked files, and standard `git` commands in this repository are all you need.
 
-### Method 1: Direct in `$HOME` (Bare Repo / `dot` Alias)
 
-Edit active configuration files directly in your home directory without intermediate copying.
+```bash
+make stow     # initial setup
+make restow   # re-apply after adding/removing dotfiles
+make unstow   # remove all symlinks
+```
 
-1. **Edit the target file:**
-   ```bash
-   vim ~/.zshrc
-   # or edit ~/.gitconfig, ~/.gemini/
-   ```
-
-2. **Reload shell (for `.zshrc`):**
-   ```bash
-   reload-shell
-   # or: source ~/.zshrc
-   ```
-
-3. **Stage, commit, and push:**
-   ```bash
-   dot status
-   dot add ~/.zshrc
-   dot commit -m "Update zsh configuration"
-   dot push origin main
-   ```
-   *(Note: Ensure `dot remote set-url origin git@github.com:victoriacheng15/dotfiles.git` is set if pushing directly to GitHub).*
-
-### Method 2: In Cloned Repository (`dotfiles/`)
-
-Edit files inside this repository working directory, sync them to `$HOME`, and push using standard `git`.
-
-1. **Edit the file:**
-   ```bash
-   vim .zshrc
-   # or edit .gitconfig, .gemini/
-   ```
-
-2. **Sync to `$HOME` and reload:**
-   ```bash
-   cp .zshrc ~/.zshrc
-   # for .gitconfig: cp .gitconfig ~/.gitconfig
-   # for .gemini:    cp -r .gemini/ ~/.gemini/
-   reload-shell
-   ```
-
-3. **Stage, commit, and push:**
-   ```bash
-   git add .zshrc
-   git commit -m "Update zsh configuration"
-   git push origin main
-   ```
 
 ## Testing In Isolation
 
 ```bash
 # Ubuntu
-docker run -it --rm -v "$(pwd):/root/dotfiles" -w /root/dotfiles ubuntu:22.04 bash -c "apt update && apt install -y sudo && bash setup.sh"
+docker run -it --rm -v "$(pwd):/root/dotfiles" -w /root/dotfiles ubuntu:22.04 bash -c "apt update && apt install -y sudo && bash install.sh"
 
 # Fedora
-podman run -it --rm -v "$(pwd):/root/dotfiles:Z" -w /root/dotfiles fedora:39 bash -c "dnf install -y sudo && bash setup.sh"
+podman run -it --rm -v "$(pwd):/root/dotfiles:Z" -w /root/dotfiles fedora:44 bash -c "dnf install -y sudo && bash install.sh"
 ```
 
-## Useful Aliases
-
-**System:** `reload-shell`, `update`, `cleanup`  
-**Nav:** `dev`, `home`, `ls`, `ll`  
-**Git:** `g`, `gs`, `ga`, `gc`, `gp`, `gpl`, `gl`, `gst`  
-**Docker:** `d`, `dc`, `dps`, `dim`, `dlog`
 
 ## Debugging
 
 ```bash
 # Dry run
-bash setup.sh --dry-run
+bash install.sh --dry-run
+bash install-atomic.sh --dry-run
 
 # Skip specific installs - comment out in main()
 ```
@@ -199,4 +143,5 @@ bash setup.sh --dry-run
 - Supports Ubuntu 22.04/24.04 LTS and Fedora 40+
 - Fedora setup intentionally skips Docker installation
 - Idempotent - safe to run multiple times
-- `setup.sh` is the unified orchestrator script; it automatically detects your OS and installs missing packages.
+- `install.sh` is the unified orchestrator for Fedora and Ubuntu; `install-atomic.sh` is for Fedora Atomic desktops (Silverblue, Kinoite, Sericea)
+- Dotfiles are managed via GNU Stow; symlinks point from `$HOME` directly into this repository
