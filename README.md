@@ -5,10 +5,9 @@ Personal dotfiles and dev environment setup for Ubuntu/Debian and Fedora.
 ### Packages to Install / Dev Stack
 - [Zsh](https://www.zsh.org)
 - [Oh My Zsh](https://ohmyz.sh)
-- Go, Python, Rust
-- [Helm](https://helm.sh)
-- [OpenTofu](https://opentofu.org)
+- [mise](https://mise.jdx.dev/) (polyglot runtime and toolchain manager)
 - [jq](https://jqlang.github.io/jq/) & [yq](https://github.com/mikefarah/yq)
+- [GitHub CLI](https://cli.github.com/)
 - [AWS CLI](https://aws.amazon.com/cli/) & [Azure CLI](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli)
 
 *Note: Check the [Fedora Developer Portal](https://developer.fedoraproject.org/) for installing development packages on Fedora.*
@@ -36,15 +35,13 @@ bash install.sh --dry-run
 **Core:**
 
 - Zsh + Oh My Zsh (auto-switches from bash)
-- Go, Rust/Cargo
+- [mise](https://mise.jdx.dev/) (manages Go, Rust, OpenTofu, Helm, Node.js, and other runtimes in user space)
 - GitHub CLI
-- Azure CLI
+- Azure CLI & AWS CLI
 
 **Dev & DevOps Tools:**
 
 - Docker + Docker Compose on Ubuntu/Debian only
-- Helm
-- OpenTofu
 - jq, yq
 
 **Config:**
@@ -91,7 +88,7 @@ bash install-atomic.sh --dry-run
 
 #### 1. Cloud & Infra Container (`cloud-dev`)
 
-Installs group packages (`c-development`, `development-tools`, `editors`), then individual tools: `golang`, `rust`, `cargo`, `gh`, `azure-cli`, `jq`, `yq`, `helm`, `opentofu`, `awscli2`, `kubernetes-clients`, and `stow`. Also installs Oh My Zsh and [uv](https://docs.astral.sh/uv/) for Python tooling.
+Installs group packages (`c-development`, `development-tools`, `editors`), system packages (`gh`, `azure-cli`, `jq`, `yq`, `awscli2`, `kubernetes-clients`, and `stow`), Oh My Zsh, [uv](https://docs.astral.sh/uv/) for Python tooling, and [mise](https://mise.jdx.dev/) for polyglot runtime management.
 
 #### 2. Node.js Container (`node-dev`)
 

@@ -14,24 +14,16 @@ TARGET_OS="fedora"
 FEDORA_PACKAGES=(
     stow
     zsh
-    golang
-    rust
-    cargo
     gh
-    azure-cli
     jq
     yq
-    helm
-    opentofu
+    azure-cli
     awscli2
 )
 
 # Todo check for ubuntu packages later
 UBUNTU_PACKAGES=(
     zsh
-    golang-go
-    rustc
-    cargo
     gh
     azure-cli
     jq
@@ -61,12 +53,18 @@ is_pkg_installed() {
     local pkg="$1"
     case "$pkg" in
         awscli2)   command -v aws >/dev/null 2>&1 ;;
-        opentofu)  command -v tofu >/dev/null 2>&1 || command -v opentofu >/dev/null 2>&1 ;;
-        golang*)   command -v go >/dev/null 2>&1 ;;
-        rust*)     command -v rustc >/dev/null 2>&1 ;;
         azure-cli) command -v az >/dev/null 2>&1 ;;
         *)         command -v "$pkg" >/dev/null 2>&1 ;;
     esac
+}
+
+install_mise() {
+    if command -v mise >/dev/null 2>&1; then
+        info "mise is already installed."
+    else
+        info "Installing mise..."
+        execute "curl https://mise.run | sh"
+    fi
 }
 
 install_packages() {
@@ -189,6 +187,7 @@ main() {
     [[ "$DRY_RUN" == "true" ]] && info "🔍 RUNNING IN DRY-RUN MODE (OS: $TARGET_OS)"
 
     install_packages
+    install_mise
     install_shell_tools
     setup_symlinks
 
@@ -205,7 +204,7 @@ main() {
     command -v az >/dev/null && info "  Azure CLI: $(az --version | head -n 1)"
     command -v gh >/dev/null && info "  GitHub CLI: $(gh --version | head -n 1)"
     command -v docker >/dev/null && info "  Docker:    $(docker --version)"
-    command -v tofu >/dev/null && info "  OpenTofu:  $(tofu --version | head -n 1)"
+    command -v mise >/dev/null && info "  mise:      $(mise --version | head -n 1)"
     command -v kubectl >/dev/null && info "  Kubectl:   $(kubectl version --client --short 2>/dev/null || kubectl version --client | head -n 1)"
     info "---------------------------------"
     info "📝 Next Steps:"

@@ -49,15 +49,10 @@ guard_host() {
 CLOUD_DEV_PACKAGES=(
     stow
     zsh
-    golang
-    rust
-    cargo
     gh
-    azure-cli
     jq
     yq
-    helm
-    opentofu
+    azure-cli
     awscli2
     kubernetes-clients
 )
@@ -103,6 +98,10 @@ setup_cloud_dev() {
     # uv for Python tooling
     execute "toolbox run -c cloud-dev -- bash -c \
         'command -v uv || curl -LsSf https://astral.sh/uv/install.sh | sh'"
+
+    # mise for toolchain management
+    execute "toolbox run -c cloud-dev -- bash -c \
+        'command -v mise || curl https://mise.run | sh'"
 }
 
 # --- 2. NODE-DEV CONTAINER ---
