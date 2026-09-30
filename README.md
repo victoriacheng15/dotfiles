@@ -91,7 +91,7 @@ toolbox enter workspace
 
 #### What Gets Provisioned
 
-- **System & Build Tooling (DNF):** Group packages (`c-development`, `development-tools`, `editors`) and CLI utilities (`stow`, `zsh`, `gh`, `azure-cli`, `awscli2`, `kubernetes-clients`, `weasyprint`, `jq`, `yq`).
+- **System & Build Tooling (DNF):** Group packages (`c-development`, `development-tools`, `editors`) and CLI utilities (`stow`, `zsh`, `gh`, `azure-cli`, `awscli2`, `kubernetes-client`, `weasyprint`, `jq`, `yq`).
 - **Shell:** Oh My Zsh.
 - **Python Management:** [uv](https://docs.astral.sh/uv/) for high-performance Python tooling and virtual environments.
 - **Polyglot Runtimes:** [mise](https://mise.jdx.dev/) managing user-space runtimes with `node@lts` and `go@latest` enabled globally. Additional runtimes or versions can be added on demand via `mise use -g <tool>@<version>`.

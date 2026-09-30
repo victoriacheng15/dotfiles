@@ -51,7 +51,7 @@ WORKSPACE_PACKAGES=(
     yq
     azure-cli
     awscli2
-    kubernetes-clients
+    kubernetes-client
     weasyprint
 )
 
@@ -77,13 +77,16 @@ setup_workspace() {
     create_container "$name"
 
     info "Installing group packages inside $name..."
-    execute "toolbox run -c $name -- sudo dnf group install -y \
-        c-development \
-        development-tools \
-        editors"
+    for group in c-development development-tools editors; do
+        info "  Installing group: $group..."
+        execute "toolbox run -c $name -- sudo dnf group install -y $group"
+    done
 
-    info "Installing packages inside $name: ${WORKSPACE_PACKAGES[*]}"
-    execute "toolbox run -c $name -- sudo dnf install -y ${WORKSPACE_PACKAGES[*]}"
+    info "Installing individual packages inside $name..."
+    for pkg in "${WORKSPACE_PACKAGES[@]}"; do
+        info "  Installing package: $pkg..."
+        execute "toolbox run -c $name -- sudo dnf install -y $pkg"
+    done
 
     # Oh My Zsh (non-interactive)
     execute "toolbox run -c $name -- bash -c \
