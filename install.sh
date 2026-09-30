@@ -19,6 +19,7 @@ FEDORA_PACKAGES=(
     yq
     azure-cli
     awscli2
+    weasyprint
 )
 
 # Todo check for ubuntu packages later
@@ -28,6 +29,7 @@ UBUNTU_PACKAGES=(
     azure-cli
     jq
     yq
+    weasyprint
 )
 
 GREEN='\033[0;32m'

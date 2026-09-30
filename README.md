@@ -9,6 +9,7 @@ Personal dotfiles and dev environment setup for Ubuntu/Debian and Fedora.
 - [jq](https://jqlang.github.io/jq/) & [yq](https://github.com/mikefarah/yq)
 - [GitHub CLI](https://cli.github.com/)
 - [AWS CLI](https://aws.amazon.com/cli/) & [Azure CLI](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli)
+- [WeasyPrint](https://weasyprint.org/) (document and PDF rendering)
 
 *Note: Check the [Fedora Developer Portal](https://developer.fedoraproject.org/) for installing development packages on Fedora.*
 
@@ -68,31 +69,32 @@ Fedora Atomic Desktops (Silverblue, Kinoite, Sericea) feature an immutable root 
 
 Your home directory (`/var/home/$USER`) is shared directly between the host and Toolbox containers. Any dotfiles configured here (`.zshrc`, `.p10k.zsh`, `.gitconfig`, `.gitignore_global`) are immediately active and shared across both the host and container environments.
 
-### Toolbox Environments
+### Toolbox Environment (`workspace`)
 
-From the Atomic host, run [install-atomic.sh](install-atomic.sh) to create and provision both containers automatically:
+From the Atomic host, run [install-atomic.sh](install-atomic.sh) to create and provision the unified `workspace` container:
 
 ```bash
 cd dotfiles/
 
-# Provision both containers
+# Provision workspace container
 bash install-atomic.sh
-
-# Or target a specific one
-bash install-atomic.sh --env=cloud
-bash install-atomic.sh --env=node
 
 # Preview without making changes
 bash install-atomic.sh --dry-run
 ```
 
-#### 1. Cloud & Infra Container (`cloud-dev`)
+Once provisioned, enter the environment:
 
-Installs group packages (`c-development`, `development-tools`, `editors`), system packages (`gh`, `azure-cli`, `jq`, `yq`, `awscli2`, `kubernetes-clients`, and `stow`), Oh My Zsh, [uv](https://docs.astral.sh/uv/) for Python tooling, and [mise](https://mise.jdx.dev/) for polyglot runtime management.
+```bash
+toolbox enter workspace
+```
 
-#### 2. Node.js Container (`node-dev`)
+#### What Gets Provisioned
 
-Installs `development-tools` group and `gcc-c++`, then sets up [mise](https://mise.jdx.dev/) with `node@lts` and `pnpm@latest`.
+- **System & Build Tooling (DNF):** Group packages (`c-development`, `development-tools`, `editors`) and CLI utilities (`stow`, `zsh`, `gh`, `azure-cli`, `awscli2`, `kubernetes-clients`, `weasyprint`, `jq`, `yq`).
+- **Shell:** Oh My Zsh.
+- **Python Management:** [uv](https://docs.astral.sh/uv/) for high-performance Python tooling and virtual environments.
+- **Polyglot Runtimes:** [mise](https://mise.jdx.dev/) managing user-space runtimes with `node@lts` and `go@latest` enabled globally. Additional runtimes or versions can be added on demand via `mise use -g <tool>@<version>`.
 
 ### Host-Level Applications
 
