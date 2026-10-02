@@ -11,6 +11,12 @@ export DRY_RUN=false
 TARGET_OS="fedora"
 
 # Centralized package definitions
+FEDORA_GROUPS=(
+    c-development
+    development-tools
+    editors
+)
+
 FEDORA_PACKAGES=(
     stow
     zsh
@@ -23,7 +29,12 @@ FEDORA_PACKAGES=(
 )
 
 # Todo check for ubuntu packages later
+UBUNTU_GROUPS=(
+    build-essential
+)
+
 UBUNTU_PACKAGES=(
+    stow
     zsh
     gh
     azure-cli
@@ -74,6 +85,11 @@ install_packages() {
     local missing=()
 
     if [[ "$TARGET_OS" == "fedora" ]]; then
+        info "Installing Fedora package groups..."
+        for group in "${FEDORA_GROUPS[@]}"; do
+            info "  Installing group: $group..."
+            execute "sudo dnf group install -y $group"
+        done
         pkgs=("${FEDORA_PACKAGES[@]}")
     elif [[ "$TARGET_OS" == "ubuntu" ]]; then
         pkgs=("${UBUNTU_PACKAGES[@]}")
