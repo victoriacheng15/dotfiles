@@ -105,6 +105,33 @@ setup_workspace() {
     execute "toolbox run -c $name -- bash -c 'mise use -g node@lts go@latest'"
 }
 
+# --- LOCAL GIT CREDENTIALS ---
+setup_git_credentials() {
+    local local_gitconfig="$HOME/.gitconfig.local"
+    if [[ ! -f "$local_gitconfig" ]]; then
+        if [[ "$DRY_RUN" == "true" ]]; then
+            info "[DRY-RUN] Would configure local Git credentials in $local_gitconfig"
+        elif [ -t 0 ]; then
+            info "Setting up local Git credentials (these will not be pushed to GitHub)..."
+            read -p "Enter your Git commit name (e.g. John Doe): " git_name
+            read -p "Enter your Git commit email (e.g. john@example.com): " git_email
+            cat <<EOF > "$local_gitconfig"
+[user]
+    name = $git_name
+    email = $git_email
+EOF
+            info "Created $local_gitconfig successfully."
+        else
+            warn "Non-interactive shell. Creating empty $local_gitconfig. Configure it manually later."
+            cat <<EOF > "$local_gitconfig"
+[user]
+    name = your_name
+    email = your_email
+EOF
+        fi
+    fi
+}
+
 # --- MAIN ---
 main() {
     while [[ $# -gt 0 ]]; do
@@ -129,6 +156,7 @@ main() {
     [[ "$DRY_RUN" == "true" ]] && info "RUNNING IN DRY-RUN MODE (container: $CONTAINER_NAME)"
 
     setup_workspace "$CONTAINER_NAME"
+    setup_git_credentials
 
     echo -e "\n${GREEN}Done. $CONTAINER_NAME container is ready.${NC}"
     info "Next steps:"

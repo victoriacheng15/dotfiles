@@ -174,7 +174,34 @@ setup_symlinks() {
     execute "stow -R -t \"$HOME\" -d \"$repo_dir\" home"
 }
 
-# --- 5. MAIN ORCHESTRATION ---
+# --- 5. LOCAL GIT CREDENTIALS ---
+setup_git_credentials() {
+    local local_gitconfig="$HOME/.gitconfig.local"
+    if [[ ! -f "$local_gitconfig" ]]; then
+        if [[ "$DRY_RUN" == "true" ]]; then
+            info "[DRY-RUN] Would configure local Git credentials in $local_gitconfig"
+        elif [ -t 0 ]; then
+            info "Setting up local Git credentials (these will not be pushed to GitHub)..."
+            read -p "Enter your Git commit name (e.g. John Doe): " git_name
+            read -p "Enter your Git commit email (e.g. john@example.com): " git_email
+            cat <<EOF > "$local_gitconfig"
+[user]
+    name = $git_name
+    email = $git_email
+EOF
+            info "Created $local_gitconfig successfully."
+        else
+            warn "Non-interactive shell. Creating empty $local_gitconfig. Configure it manually later."
+            cat <<EOF > "$local_gitconfig"
+[user]
+    name = your_name
+    email = your_email
+EOF
+        fi
+    fi
+}
+
+# --- 6. MAIN ORCHESTRATION ---
 main() {
     while [[ $# -gt 0 ]]; do
         case $1 in
@@ -208,6 +235,7 @@ main() {
     install_mise
     install_shell_tools
     setup_symlinks
+    setup_git_credentials
 
     if [[ "$DRY_RUN" == "true" ]]; then
         echo -e "\n${GREEN}Dry run completed successfully.${NC}"
