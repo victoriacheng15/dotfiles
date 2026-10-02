@@ -146,6 +146,13 @@ install_shell_tools() {
         info "Configuring .bashrc to auto-switch to Zsh..."
         execute "echo -e '\n# Auto-switch to Zsh\nif [ -x /usr/bin/zsh ]; then\n  exec zsh\nfi' >> $HOME/.bashrc"
     fi
+
+    # Powerlevel10k theme
+    local p10k_dir="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k"
+    if [[ ! -d "$p10k_dir" ]]; then
+        info "Installing Powerlevel10k theme..."
+        execute "git clone --depth=1 https://github.com/romkatv/powerlevel10k.git \"$p10k_dir\""
+    fi
 }
 
 # --- 4. DOTFILE SYMLINKS (GNU STOW) ---

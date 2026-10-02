@@ -92,6 +92,10 @@ setup_workspace() {
     execute "toolbox run -c $name -- bash -c \
         '[[ -d \$HOME/.oh-my-zsh ]] || CHSH=no RUNZSH=no sh -c \"\$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)\"'"
 
+    # Powerlevel10k theme
+    execute "toolbox run -c $name -- bash -c \
+        '[[ -d \${ZSH_CUSTOM:-\$HOME/.oh-my-zsh/custom}/themes/powerlevel10k ]] || git clone --depth=1 https://github.com/romkatv/powerlevel10k.git \${ZSH_CUSTOM:-\$HOME/.oh-my-zsh/custom}/themes/powerlevel10k'"
+
     # uv for Python tooling
     execute "toolbox run -c $name -- bash -c \
         'command -v uv || curl -LsSf https://astral.sh/uv/install.sh | sh'"
