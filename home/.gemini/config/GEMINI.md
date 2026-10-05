@@ -13,3 +13,5 @@
 - **Loop Prevention:** If a replacement fails or loops, re-read the file to synchronize state before proceeding.
 - **Punctuation:** Never use em dashes (—). Use commas, parentheses, or periods instead.
 - Formatting: Never use absolute paths (e.g., file:///var/home/...) or the file:// scheme in response links. Always use relative paths or file basenames (e.g., go.mod).
+- Prefer `rg` (ripgrep) over `grep` for searching files and text. Use `grep` only when `rg` is unavailable or when `grep` is specifically more appropriate.
+- **Scope limitation:** Strictly limit modifications to the specific lines requested. Always perform surgical in-place edits on existing files; never rewrite or recreate them as new files.
