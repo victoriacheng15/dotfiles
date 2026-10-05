@@ -1,0 +1,131 @@
+#!/usr/bin/env bash
+# File: setup-guardrails.sh
+# Purpose: Idempotently apply 'Guardrails' ruleset and retire legacy branch protection.
+# Usage:
+#   ./scripts/setup-guardrails.sh <repo-name> [--dry-run]
+#   ./scripts/setup-guardrails.sh --all [--dry-run]
+
+set -euo pipefail
+
+OWNER="victoriacheng15"
+DRY_RUN=false
+
+apply_guardrails() {
+  local repo="$1"
+  local full_repo="$OWNER/$repo"
+
+  echo "=== Configuring $full_repo ==="
+
+  # 1. Fetch default branch
+  local default_branch
+  default_branch=$(gh repo view "$full_repo" --json defaultBranchRef --jq '.defaultBranchRef.name' 2>/dev/null || echo "main")
+
+  # 2. Retire legacy branch protection if present
+  if [[ "$DRY_RUN" == "true" ]]; then
+    if gh api "repos/$full_repo/branches/$default_branch/protection" >/dev/null 2>&1; then
+      echo "  [DRY-RUN] Would retire legacy branch protection on '$default_branch'"
+    else
+      echo "  [DRY-RUN] No legacy branch protection active on '$default_branch'"
+    fi
+  else
+    gh api -X DELETE "repos/$full_repo/branches/$default_branch/protection" 2>/dev/null || true
+  fi
+
+  # 3. Check for existing ruleset named 'Guardrails'
+  local ruleset_id
+  ruleset_id=$(gh api "repos/$full_repo/rulesets" \
+    --jq '.[] | select(.name=="Guardrails") | .id' 2>/dev/null || true)
+
+  local payload
+  payload=$(cat <<'EOF'
+{
+  "name": "Guardrails",
+  "target": "branch",
+  "enforcement": "active",
+  "conditions": {
+    "ref_name": {
+      "include": ["~DEFAULT_BRANCH"],
+      "exclude": []
+    }
+  },
+  "rules": [
+    {"type": "deletion"},
+    {"type": "non_fast_forward"},
+    {"type": "required_linear_history"}
+  ]
+}
+EOF
+)
+
+  # 4. Idempotent create or update
+  if [[ "$DRY_RUN" == "true" ]]; then
+    if [[ -n "$ruleset_id" ]]; then
+      echo "  [DRY-RUN] Would update existing 'Guardrails' ruleset (ID: $ruleset_id) to active"
+    else
+      echo "  [DRY-RUN] Would create new active 'Guardrails' ruleset"
+    fi
+    return 0
+  fi
+
+  if [[ -n "$ruleset_id" ]]; then
+    gh api -X PUT "repos/$full_repo/rulesets/$ruleset_id" --input - <<< "$payload" >/dev/null
+    echo "  ✓ Updated active 'Guardrails' ruleset (ID: $ruleset_id)"
+  else
+    local new_id
+    new_id=$(gh api -X POST "repos/$full_repo/rulesets" --input - <<< "$payload" --jq '.id')
+    echo "  ✓ Created active 'Guardrails' ruleset (ID: $new_id)"
+  fi
+}
+
+main() {
+  local target=""
+
+  for arg in "$@"; do
+    case "$arg" in
+      --dry-run)
+        DRY_RUN=true
+        ;;
+      --all)
+        target="--all"
+        ;;
+      -h|--help)
+        echo "Usage:"
+        echo "  $0 <repo-name> [--dry-run]    Apply to a single repository"
+        echo "  $0 --all [--dry-run]          Apply to all public non-archived source repositories"
+        exit 0
+        ;;
+      *)
+        if [[ -z "$target" ]]; then
+          target="$arg"
+        else
+          echo "Error: Unexpected argument '$arg'"
+          exit 1
+        fi
+        ;;
+    esac
+  done
+
+  if [[ -z "$target" ]]; then
+    echo "Usage:"
+    echo "  $0 <repo-name> [--dry-run]    Apply to a single repository"
+    echo "  $0 --all [--dry-run]          Apply to all public non-archived source repositories"
+    exit 1
+  fi
+
+  if [[ "$DRY_RUN" == "true" ]]; then
+    echo ">>> Running in DRY-RUN mode (no mutating API requests will be performed) <<<"
+  fi
+
+  if [[ "$target" == "--all" ]]; then
+    echo "Querying all public, non-archived source repositories..."
+    local repos
+    repos=$(gh repo list "$OWNER" --limit 150 --source --no-archived --visibility public --json name --jq '.[].name')
+    for r in $repos; do
+      apply_guardrails "$r"
+    done
+  else
+    apply_guardrails "$target"
+  fi
+}
+
+main "$@"
