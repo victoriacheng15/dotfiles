@@ -26,6 +26,7 @@ FEDORA_PACKAGES=(
     azure-cli
     awscli2
     weasyprint
+    poppler-utils
 )
 
 # Todo check for ubuntu packages later

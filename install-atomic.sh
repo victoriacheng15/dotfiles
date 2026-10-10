@@ -53,6 +53,7 @@ WORKSPACE_PACKAGES=(
     awscli2
     kubernetes-client
     weasyprint
+    poppler-utils
 )
 
 # --- HELPERS ---
