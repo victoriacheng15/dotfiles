@@ -15,7 +15,7 @@ help:
 # ------------------------------------------------------------------------------
 ##@ Environment & Provisioning
 # ------------------------------------------------------------------------------
-.PHONY: preflight bootstrap packages-check packages
+.PHONY: preflight bootstrap packages-check packages tools
 
 preflight: ## Run system and toolchain preflight verification checks
 	bash "$(DOTFILES_DIR)/scripts/preflight.sh"
@@ -28,6 +28,9 @@ packages-check: ## Dry run system package provisioning via Ansible
 
 packages: ## Provision system packages via Ansible
 	$(ANSIBLE_CMD) "$(DOTFILES_DIR)/ansible/playbook.yml"
+
+tools: ## Install polyglot runtimes declared in mise config
+	mise install
 
 # ------------------------------------------------------------------------------
 ##@ Dotfiles Management
