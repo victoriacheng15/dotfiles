@@ -1,0 +1,13 @@
+---
+- name: Install Fedora package groups
+  ansible.builtin.dnf:
+    name: "{{ system_package_groups }}"
+    state: present
+  become: true
+  when: system_package_groups is defined and system_package_groups | length > 0
+
+- name: Install Fedora system packages
+  ansible.builtin.dnf:
+    name: "{{ system_packages }}"
+    state: present
+  become: true

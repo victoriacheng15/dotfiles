@@ -1,0 +1,30 @@
+---
+- name: Provision Developer Workstation Tier 1 Packages
+  hosts: localhost
+  connection: local
+  gather_facts: true
+
+  pre_tasks:
+    - name: Load Fedora variables
+      ansible.builtin.include_vars:
+        file: vars/fedora.yml
+      when: ansible_facts['distribution'] | lower == 'fedora'
+
+    - name: Load Ubuntu/Debian variables
+      ansible.builtin.include_vars:
+        file: vars/ubuntu.yml
+      when: ansible_facts['distribution'] | lower in ['ubuntu', 'debian', 'pop']
+
+    - name: Fail on unsupported distribution
+      ansible.builtin.fail:
+        msg: "Unsupported distribution: {{ ansible_facts['distribution'] }}. Expected Fedora or Ubuntu/Debian."
+      when: ansible_facts['distribution'] | lower not in ['fedora', 'ubuntu', 'debian', 'pop']
+
+  tasks:
+    - name: Run Fedora package installation
+      ansible.builtin.include_tasks: tasks/packages-fedora.yml
+      when: ansible_facts['distribution'] | lower == 'fedora'
+
+    - name: Run Ubuntu/Debian package installation
+      ansible.builtin.include_tasks: tasks/packages-ubuntu.yml
+      when: ansible_facts['distribution'] | lower in ['ubuntu', 'debian', 'pop']
