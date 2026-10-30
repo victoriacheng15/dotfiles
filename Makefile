@@ -15,7 +15,7 @@ help:
 # ------------------------------------------------------------------------------
 ##@ Environment & Provisioning
 # ------------------------------------------------------------------------------
-.PHONY: preflight bootstrap packages-check packages tools
+.PHONY: preflight bootstrap packages-check packages tools doctor
 
 preflight: ## Run system and toolchain preflight verification checks
 	bash "$(DOTFILES_DIR)/scripts/preflight.sh"
@@ -31,6 +31,9 @@ packages: ## Provision system packages via Ansible
 
 tools: ## Install polyglot runtimes declared in mise config
 	mise install
+
+doctor: ## Run post-provisioning health check on symlinks, packages, and runtimes
+	bash "$(DOTFILES_DIR)/scripts/doctor.sh"
 
 # ------------------------------------------------------------------------------
 ##@ Dotfiles Management
