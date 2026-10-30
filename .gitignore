@@ -1,0 +1,7 @@
+# Ansible runtime artifacts
+*.retry
+.ansible/
+ansible.log
+facts.cache
+.vault_pass*
+inventory.ini

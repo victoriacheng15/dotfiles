@@ -1,0 +1,14 @@
+---
+system_package_groups:
+  - build-essential
+
+system_packages:
+  - tmux
+  - stow
+  - zsh
+  - gh
+  - azure-cli
+  - jq
+  - yq
+  - weasyprint
+  - poppler-utils

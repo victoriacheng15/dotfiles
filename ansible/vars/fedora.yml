@@ -1,0 +1,18 @@
+---
+system_package_groups:
+  - "@c-development"
+  - "@development-tools"
+  - "@editors"
+
+system_packages:
+  - tmux
+  - stow
+  - zsh
+  - gh
+  - jq
+  - yq
+  - azure-cli
+  - awscli2
+  - kubernetes-client
+  - weasyprint
+  - poppler-utils
