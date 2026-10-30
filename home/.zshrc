@@ -291,7 +291,7 @@ export WASMTIME_HOME="$HOME/.wasmtime"
 export PATH="$WASMTIME_HOME/bin:$PATH"
 
 # Added by Antigravity CLI installer
-export PATH="/var/home/victoriac/.local/bin:$PATH"
+export PATH="$HOME/.local/bin:$PATH"
 
 eval "$(mise activate zsh)"
 
