@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# File: setup-guardrails.sh
+# File: gh-setup
 # Purpose: Idempotently apply 'Guardrails' ruleset and retire legacy branch protection.
 # Usage:
-#   ./scripts/setup-guardrails.sh <repo-name> [--dry-run]
-#   ./scripts/setup-guardrails.sh --all [--dry-run]
+#   gh-setup <repo-name> [--dry-run]
+#   gh-setup --all [--dry-run]
 
 set -euo pipefail
 

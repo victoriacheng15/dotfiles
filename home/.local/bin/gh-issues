@@ -1,0 +1,189 @@
+#!/usr/bin/env bash
+# ==============================================================================
+# GitHub Issue Manager for Blog & LinkedIn Drafts
+# ==============================================================================
+# Usage:
+#   gh-issues --blog <file_path>
+#   gh-issues --linkedin <file_path>
+#   gh-issues --fetch <issue_number>
+#   gh-issues --update <issue_number> <file_path>
+# ==============================================================================
+
+set -euo pipefail
+
+REPO="victoriacheng15/blog-drafts"
+ACTION=""
+ISSUE_NO=""
+FILE_PATH=""
+
+usage() {
+  cat <<EOF
+Usage: $(basename "$0") [ACTION] [ARGUMENTS]
+
+Actions:
+  -b, --blog <file>              Create a blog draft issue with frontmatter title & yearly milestone
+  -l, --linkedin <file>          Create a LinkedIn draft issue with first-line title & 'ln-only' label
+  -f, --fetch <issue_no>         Fetch issue body and save to issue-<issue_no>.md
+  -u, --update <issue_no> [file] Update issue body from issue-<issue_no>.md (or specified file)
+  -h, --help                     Show this help message
+
+Examples:
+  gh-issues --blog posts/my-post.md
+  gh-issues --linkedin updates/my-update.md
+  gh-issues --fetch 800
+  gh-issues --update 800
+  gh-issues --update 800 custom-file.md
+EOF
+  exit "${1:-0}"
+}
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -b|--blog)
+      ACTION="blog"
+      shift
+      if [[ $# -gt 0 && ! "$1" =~ ^- ]]; then
+        FILE_PATH="$1"
+        shift
+      fi
+      ;;
+    -l|--linkedin)
+      ACTION="linkedin"
+      shift
+      if [[ $# -gt 0 && ! "$1" =~ ^- ]]; then
+        FILE_PATH="$1"
+        shift
+      fi
+      ;;
+    -f|--fetch)
+      ACTION="fetch"
+      shift
+      if [[ $# -gt 0 && ! "$1" =~ ^- ]]; then
+        ISSUE_NO="$1"
+        shift
+      fi
+      ;;
+    -u|--update)
+      ACTION="update"
+      shift
+      if [[ $# -gt 0 && ! "$1" =~ ^- ]]; then
+        ISSUE_NO="$1"
+        shift
+      fi
+      if [[ $# -gt 0 && ! "$1" =~ ^- ]]; then
+        FILE_PATH="$1"
+        shift
+      fi
+      ;;
+    -h|--help)
+      usage 0
+      ;;
+    *)
+      echo "Error: Unexpected argument: $1" >&2
+      usage 1
+      ;;
+  esac
+done
+
+if [[ -z "$ACTION" ]]; then
+  echo "Error: Please specify an action (-b, -l, -f, or -u)." >&2
+  usage 1
+fi
+
+if ! command -v gh &>/dev/null; then
+  echo "Error: 'gh' CLI is required but not installed." >&2
+  exit 1
+fi
+
+case "$ACTION" in
+  blog)
+    if [[ -z "$FILE_PATH" ]]; then
+      echo "Error: Missing file path for --blog." >&2
+      usage 1
+    fi
+    if [[ ! -f "$FILE_PATH" ]]; then
+      echo "Error: File '$FILE_PATH' not found." >&2
+      exit 1
+    fi
+
+    milestone="Blog $(date +%Y)"
+    title="$(grep -m 1 "^title:" "$FILE_PATH" | sed 's/^title: *//; s/^"//; s/"$//')"
+
+    if [[ -z "$title" ]]; then
+      echo "Error: Could not extract title from frontmatter in '$FILE_PATH'." >&2
+      exit 1
+    fi
+
+    echo "Creating blog issue in $REPO..."
+    echo "Title:     $title"
+    echo "Milestone: $milestone"
+    echo "File:      $FILE_PATH"
+
+    gh issue create \
+      --repo "$REPO" \
+      --title "$title" \
+      --body-file "$FILE_PATH" \
+      --label "blog,draft" \
+      --milestone "$milestone"
+    ;;
+
+  linkedin)
+    if [[ -z "$FILE_PATH" ]]; then
+      echo "Error: Missing file path for --linkedin." >&2
+      usage 1
+    fi
+    if [[ ! -f "$FILE_PATH" ]]; then
+      echo "Error: File '$FILE_PATH' not found." >&2
+      exit 1
+    fi
+
+    title="$(head -n 1 "$FILE_PATH" | sed 's/^🌊🌊🌊 - //')"
+
+    if [[ -z "$title" ]]; then
+      echo "Error: Could not extract title from the first line of '$FILE_PATH'." >&2
+      exit 1
+    fi
+
+    echo "Creating LinkedIn issue in $REPO..."
+    echo "Title: $title"
+    echo "File:  $FILE_PATH"
+
+    gh issue create \
+      --repo "$REPO" \
+      --title "$title" \
+      --body-file "$FILE_PATH" \
+      --label "ln-only"
+    ;;
+
+  fetch)
+    if [[ -z "$ISSUE_NO" ]]; then
+      echo "Error: Missing issue number for --fetch." >&2
+      usage 1
+    fi
+
+    target_file="issue-${ISSUE_NO}.md"
+    echo "Fetching issue #$ISSUE_NO from $REPO to $target_file..."
+    gh issue view "$ISSUE_NO" --repo "$REPO" --json body --jq .body > "$target_file"
+    echo "Saved to $target_file"
+    ;;
+
+  update)
+    if [[ -z "$ISSUE_NO" ]]; then
+      echo "Error: Missing issue number for --update." >&2
+      usage 1
+    fi
+
+    if [[ -z "$FILE_PATH" ]]; then
+      FILE_PATH="issue-${ISSUE_NO}.md"
+    fi
+
+    if [[ ! -f "$FILE_PATH" ]]; then
+      echo "Error: File '$FILE_PATH' not found." >&2
+      exit 1
+    fi
+
+    echo "Updating issue #$ISSUE_NO in $REPO from $FILE_PATH..."
+    gh issue edit "$ISSUE_NO" --repo "$REPO" --body-file "$FILE_PATH"
+    echo "Issue #$ISSUE_NO updated successfully."
+    ;;
+esac

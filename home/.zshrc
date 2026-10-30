@@ -78,11 +78,13 @@ ZSH_THEME="powerlevel10k/powerlevel10k"
 # Custom plugins may be added to $ZSH_CUSTOM/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-plugins=(git python kubectl)
+plugins=(git python kubectl colored-man-pages alias-finder history)
 
 source $ZSH/oh-my-zsh.sh
 
 # User configuration
+HISTSIZE=10000
+SAVEHIST=10000
 
 # export MANPATH="/usr/local/man:$MANPATH"
 
@@ -140,22 +142,16 @@ if [ -f /etc/os-release ]; then
 fi
 
 alias dev='cd $HOME/software'
-alias home='cd ~'
 alias ls='ls --color=auto -la'               # List all files in long format
 alias ll='ls -lah'               # List files with human-readable sizes
 alias la='ls -A'                # List all files except . and ..
 alias l='ls -CF'                # List files in columns
-# Docker Shortcuts
-alias d='docker'
-alias dc='docker compose'
-alias dps='docker ps'
-alias dim='docker images'
-alias dlog='docker logs -f'
-alias docker=podman
-# if [ -S "$XDG_RUNTIME_DIR/podman/podman.sock" ]; then
-#   export DOCKER_HOST="unix://$XDG_RUNTIME_DIR/podman/podman.sock"
-#   export DOCKER_SOCK="$XDG_RUNTIME_DIR/podman/podman.sock"
-# fi
+# personal aliases for gh-issues script
+alias create_blog_issue='gh-issues --blog'
+alias create_linkedin_issue='gh-issues --linkedin'
+alias fetch_issue='gh-issues --fetch'
+alias update_issue='gh-issues --update'
+
 # misc
 alias k='kubectl'
 
@@ -175,119 +171,6 @@ ignore_files() {
   npx gitignore "$@"
   echo "✅ .gitignore generated for: $*"
 }
-
-# Method 1: Fetch issue body and save as issue-[num].md
-# Usage: fetch_issue <issue_number>
-fetch_issue() {
-    local repo="victoriacheng15/blog-drafts"
-    local issue_no=$1
-    if [[ -z "$issue_no" ]]; then
-        echo "Usage: fetch_issue <issue_number>"
-        return 1
-    fi
-
-    local file_path="issue-${issue_no}.md"
-    echo "Fetching issue #$issue_no from $repo to $file_path..."
-    gh issue view "$issue_no" --repo "$repo" --json body --jq .body > "$file_path"
-}
-
-# Method 2: Update issue body from a local file
-# Usage: update_issue <issue_number> <file_path>
-update_issue() {
-    local repo="victoriacheng15/blog-drafts"
-    local issue_no=$1
-    local file_path=$2
-
-    if [[ -z "$issue_no" || -z "$file_path" ]]; then
-        echo "Usage: update_issue <issue_number> <file_path>"
-        return 1
-    fi
-
-    if [[ ! -f "$file_path" ]]; then
-        echo "Error: File $file_path not found."
-        return 1
-    fi
-
-    echo "Updating issue #$issue_no in $repo from $file_path..."
-    gh issue edit "$issue_no" --repo "$repo" --body-file "$file_path"
-}
-
-# Method 3: Create blog draft issue from a markdown file
-# Usage: create_blog_issue <file_path>
-create_blog_issue() {
-    local repo="victoriacheng15/blog-drafts"
-    local file_path=$1
-    local title
-    local milestone
-
-    if [[ -z "$file_path" ]]; then
-        echo "Usage: create_blog_issue <file_path>"
-        return 1
-    fi
-
-    if [[ ! -f "$file_path" ]]; then
-        echo "Error: File $file_path not found."
-        return 1
-    fi
-
-    milestone="Blog $(date +%Y)"
-    title=$(grep -m 1 "^title:" "$file_path" | sed 's/^title: *//; s/^"//; s/"$//')
-
-    if [[ -z "$title" ]]; then
-        echo "Error: Could not extract title from frontmatter in $file_path"
-        return 1
-    fi
-
-    echo "Creating blog issue..."
-    echo "Title: $title"
-    echo "File:  $file_path"
-
-    gh issue create \
-        --repo "$repo" \
-        --title "$title" \
-        --body-file "$file_path" \
-        --label "blog,draft" \
-        --milestone "$milestone"
-}
-
-# Method 4: Create LinkedIn-only issue from a markdown file
-# Usage: create_linkedin_issue <file_path>
-create_linkedin_issue() {
-    local repo="victoriacheng15/blog-drafts"
-    local file_path=$1
-    local title
-
-    if [[ -z "$file_path" ]]; then
-        echo "Usage: create_linkedin_issue <file_path>"
-        return 1
-    fi
-
-    if [[ ! -f "$file_path" ]]; then
-        echo "Error: File $file_path not found."
-        return 1
-    fi
-
-    title=$(head -n 1 "$file_path" | sed 's/^🌊🌊🌊 - //')
-
-    if [[ -z "$title" ]]; then
-        echo "Error: Could not extract title from the first line of $file_path"
-        return 1
-    fi
-
-    echo "Creating LinkedIn-only issue..."
-    echo "Title: $title"
-    echo "File:  $file_path"
-
-    gh issue create \
-        --repo "$repo" \
-        --title "$title" \
-        --body-file "$file_path" \
-        --label "ln-only"
-}
-
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 
 export KUBECONFIG=~/.kube/config
 
