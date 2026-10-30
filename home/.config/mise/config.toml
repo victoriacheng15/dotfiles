@@ -1,0 +1,5 @@
+[tools]
+go = "latest"
+helm = "latest"
+node = "lts"
+opentofu = "latest"
