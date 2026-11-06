@@ -6,9 +6,9 @@
 # Tier 2 uv environment, Tier 3 mise runtimes, and container sockets.
 #
 # Usage:
-#   ./scripts/doctor.sh           # standard execution
-#   ./scripts/doctor.sh --strict  # exit 1 on any warning
-#   ./scripts/doctor.sh --help    # display usage
+#   ./scripts/02-doctor.sh           # standard execution
+#   ./scripts/02-doctor.sh --strict  # exit 1 on any warning
+#   ./scripts/02-doctor.sh --help    # display usage
 # ==============================================================================
 
 set -euo pipefail

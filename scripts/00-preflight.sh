@@ -6,9 +6,9 @@
 # network connectivity, and readiness for Ansible, uv, and mise.
 #
 # Usage:
-#   ./scripts/preflight.sh           # standard execution
-#   ./scripts/preflight.sh --strict  # exit 1 on any warning
-#   ./scripts/preflight.sh --help    # display usage
+#   ./scripts/00-preflight.sh           # standard execution
+#   ./scripts/00-preflight.sh --strict  # exit 1 on any warning
+#   ./scripts/00-preflight.sh --help    # display usage
 # ==============================================================================
 
 set -euo pipefail
