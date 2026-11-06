@@ -1,7 +1,6 @@
 ---
 - name: Provision Developer Workstation Tier 1 Packages
-  hosts: localhost
-  connection: local
+  hosts: all
   gather_facts: true
 
   pre_tasks:
