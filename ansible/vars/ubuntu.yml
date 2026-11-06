@@ -6,8 +6,6 @@ system_packages:
   - tmux
   - stow
   - zsh
-  - gh
-  - azure-cli
   - jq
   - yq
   - weasyprint
