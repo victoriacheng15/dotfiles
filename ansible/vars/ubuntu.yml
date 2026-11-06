@@ -12,3 +12,4 @@ system_packages:
   - yq
   - weasyprint
   - poppler-utils
+  - bind9-dnsutils

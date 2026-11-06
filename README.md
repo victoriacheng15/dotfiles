@@ -54,59 +54,15 @@ Tracked in `home/.local/bin/` and symlinked directly into your `$PATH`:
 - **`gh-status`:** Fast inspector for GitHub PR and issue states (`gh-status --issue <num>`, `gh-status --pr <num>`).
 - **`ppr`:** Interactive pretty PR listing.
 
-
-## Testing In Isolation
-
-```bash
-# Ubuntu
-docker run -it --rm -v "$(pwd):/root/dotfiles" -w /root/dotfiles ubuntu:22.04 bash -c "apt update && apt install -y sudo && bash install.sh"
-
-# Fedora
-podman run -it --rm -v "$(pwd):/root/dotfiles:Z" -w /root/dotfiles fedora:44 bash -c "dnf install -y sudo && bash install.sh"
-```
-
-
-## Debugging
+## Verification & Dry Run
 
 ```bash
-# Dry run
-bash install.sh --dry-run
-bash install-atomic.sh --dry-run
+# Run preflight verification checks
+make preflight
 
-# Skip specific installs - comment out in main()
+# Preview Ansible package provisioning
+make packages-check
+
+# Run post-provisioning health check
+make doctor
 ```
-
-<details>
-<summary>Fedora Atomic Desktop & Toolbox Setup</summary>
-
-Fedora Atomic Desktops (Silverblue, Kinoite, Sericea) feature an immutable root filesystem (`/`). Instead of package layering development tools onto the base system with `rpm-ostree`, development workflows run inside containerized environments using **Toolbox** (or Distrobox).
-
-### Shared Home Directory
-
-Your home directory (`/var/home/$USER`) is shared directly between the host and Toolbox containers. Any dotfiles configured here (`.zshrc`, `.p10k.zsh`, `.gitconfig`, `.gitignore_global`) are immediately active and shared across both the host and container environments.
-
-### Toolbox Environment (`workspace`)
-
-From the Atomic host, run [install-atomic.sh](install-atomic.sh) to create and provision the unified `workspace` container:
-
-```bash
-cd dotfiles/
-bash install-atomic.sh
-bash install-atomic.sh --dry-run
-```
-
-Once provisioned, enter the environment:
-
-```bash
-toolbox enter workspace
-```
-
-### Host-Level Applications
-
-Install graphical user applications (IDEs, browsers, terminals) on the immutable host via Flatpak:
-
-```bash
-flatpak install flathub com.visualstudio.code
-```
-
-</details>

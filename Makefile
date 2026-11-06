@@ -18,10 +18,10 @@ help:
 .PHONY: preflight bootstrap packages-check packages tools doctor
 
 preflight: ## Run system and toolchain preflight verification checks
-	bash "$(DOTFILES_DIR)/scripts/preflight.sh"
+	bash "$(DOTFILES_DIR)/scripts/00-preflight.sh"
 
 bootstrap: ## Install foundation prerequisites (uv, ansible-core, mise)
-	bash "$(DOTFILES_DIR)/scripts/bootstrap.sh"
+	bash "$(DOTFILES_DIR)/scripts/01-bootstrap.sh"
 
 packages-check: ## Dry run system package provisioning via Ansible
 	$(ANSIBLE_CMD) --check "$(DOTFILES_DIR)/ansible/playbook.yml"
@@ -33,7 +33,7 @@ tools: ## Install polyglot runtimes declared in mise config
 	mise install
 
 doctor: ## Run post-provisioning health check on symlinks, packages, and runtimes
-	bash "$(DOTFILES_DIR)/scripts/doctor.sh"
+	bash "$(DOTFILES_DIR)/scripts/02-doctor.sh"
 
 # ------------------------------------------------------------------------------
 ##@ Dotfiles Management

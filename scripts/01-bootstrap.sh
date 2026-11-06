@@ -7,8 +7,8 @@
 # in user space without host system pollution.
 #
 # Usage:
-#   bash scripts/bootstrap.sh            # standard execution
-#   bash scripts/bootstrap.sh --dry-run  # preview actions
+#   bash scripts/01-bootstrap.sh            # standard execution
+#   bash scripts/01-bootstrap.sh --dry-run  # preview actions
 # ==============================================================================
 
 set -euo pipefail
