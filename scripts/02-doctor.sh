@@ -71,30 +71,22 @@ EOF
 check_symlinks() {
   header "1. GNU Stow Symlink Integrity"
 
-  local tracked_links=(
-    "${HOME}/.zshrc:${DOTFILES_DIR}/home/.zshrc"
-    "${HOME}/.tmux.conf:${DOTFILES_DIR}/home/.tmux.conf"
-    "${HOME}/.gitconfig:${DOTFILES_DIR}/home/.gitconfig"
-    "${HOME}/.p10k.zsh:${DOTFILES_DIR}/home/.p10k.zsh"
-    "${HOME}/.config/mise/config.toml:${DOTFILES_DIR}/home/.config/mise/config.toml"
-    "${HOME}/.local/bin/gh-issues:${DOTFILES_DIR}/home/.local/bin/gh-issues"
-    "${HOME}/.local/bin/gh-setup:${DOTFILES_DIR}/home/.local/bin/gh-setup"
-    "${HOME}/.local/bin/gh-status:${DOTFILES_DIR}/home/.local/bin/gh-status"
-    "${HOME}/.local/bin/ppr:${DOTFILES_DIR}/home/.local/bin/ppr"
-  )
+  local tracked_files=()
+  while IFS= read -r -d '' file; do
+    tracked_files+=("$file")
+  done < <(find "${DOTFILES_DIR}/home" -type f -print0 | sort -z)
 
-  for entry in "${tracked_links[@]}"; do
-    local link_path="${entry%%:*}"
-    local expected_target="${entry##*:}"
-    local rel_path="${link_path#$HOME/}"
+  for repo_file in "${tracked_files[@]}"; do
+    local rel_path="${repo_file#${DOTFILES_DIR}/home/}"
+    local link_path="${HOME}/${rel_path}"
 
     if [[ -L "$link_path" ]]; then
       local actual_target
       actual_target="$(readlink -f "$link_path")"
-      if [[ "$actual_target" == "$expected_target" ]]; then
+      if [[ "$actual_target" == "$repo_file" ]]; then
         pass "~/$rel_path correctly symlinked to repository"
       else
-        warn "~/$rel_path symlinked to unexpected target: $actual_target (expected $expected_target)"
+        warn "~/$rel_path symlinked to unexpected target: $actual_target (expected $repo_file)"
       fi
     elif [[ -e "$link_path" ]]; then
       warn "~/$rel_path exists as a regular file, not a symlink managed by stow"
