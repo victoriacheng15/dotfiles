@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SOFTWARE_DIR="${SOFTWARE_DIR:-$HOME/software}"
+DATE=$(date +%Y-%m-%d)
+
+echo "=== [$(date '+%Y-%m-%d %H:%M:%S')] Starting Weekly Notes Backup ==="
+
+# Automatically discover any project with a z-local/ directory under ~/software/
+find "$SOFTWARE_DIR" -maxdepth 2 -type d -name "z-local" | while read -r zlocal_path; do
+    repo_name=$(basename "$(dirname "$zlocal_path")")
+    echo "-> Syncing [${repo_name}/z-local]..."
+
+    rsync -avz --mkpath --backup --backup-dir="archive/${DATE}" \
+        "${zlocal_path}/" "storage:/data/shares/homelab/${repo_name}/z-local/"
+done
+
+echo "=== Backup completed successfully ==="
